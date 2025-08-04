@@ -39,7 +39,6 @@ namespace Infrastructure.Services
         public LogService(ApplicationDbContext context) : base(context) { }
     }
 
-
     public class UserService : GenericService<User>, IUserService
     {
         public UserService(ApplicationDbContext context) : base(context) { }
@@ -48,8 +47,5 @@ namespace Infrastructure.Services
     {
         public RoleService(ApplicationDbContext context) : base(context) { }
     }
-    //public class TempUserRoleService : GenericService<TempUserRole>, ITempUserRoleService
-    //{
-    //    public TempUserRoleService(ApplicationDbContext context) : base(context) { }
-    //}
+   
 }

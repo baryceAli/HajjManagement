@@ -35,37 +35,9 @@ namespace Infrastructure.Plugin.Datastore.SQLServer
             base.OnModelCreating(modelBuilder);
 
             SeedData.SeedCountries(modelBuilder);
-            //SeedData.SeedRoles(modelBuilder);
-
-            // Allow only ONE cascade delete
-            //modelBuilder.Entity<AdministrativeDivisionType>()
-            //    .HasOne(t => t.Country)
-            //    .WithMany()
-            //    .HasForeignKey(t => t.CountryId)
-            //    .OnDelete(DeleteBehavior.Cascade); // KEEP this one
+            SeedData.SeedRoles(modelBuilder);
 
 
-            // Restrict cascade for the others
-            //modelBuilder.Entity<AdministrativeDivision>()
-            //    .HasOne(d => d.Country)
-            //    .WithMany()
-            //    .HasForeignKey(d => d.CountryId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-
-
-            //modelBuilder.Entity<TempUserRole>()
-            //.HasKey(r => new { r.TempUserId, r.TempRoleId});
-
-            // AdministrativeDivisionType.Country - Disable cascade
-            //modelBuilder.Entity<AdministrativeDivisionType>()
-            //    .HasOne(a => a.Country)
-            //    .WithMany(c => c.AdministrativeDivisionTypes)
-            //    .HasForeignKey(a => a.CountryId)
-            //    .OnDelete(DeleteBehavior.Restrict); // 👈 Prevent cascade here
-
-            // AdministrativeDivision.Country - Leave as default (Cascade or Restrict)
-
-            // Additional configurations can be added here if needed
         }
     }
 }

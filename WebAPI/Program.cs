@@ -5,6 +5,7 @@ using Infrastructure.Plugin.Datastore.SQLServer;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WebAPI.Util;
 
 namespace WebAPI
 {
@@ -18,14 +19,20 @@ namespace WebAPI
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString, b => b.MigrationsAssembly("WebAPI")));
 
-            builder.Services.AddIdentity<User, Role>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+
+            builder.Services.AddIdentity<CoreBusiness.User, CoreBusiness.Role>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+            //builder.Services.AddIdentity<User, Role>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
 
 
             builder.Services.AddOpenApi();
@@ -43,6 +50,9 @@ namespace WebAPI
             builder.Services.AddScoped<ILogService, LogService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IRoleService, RoleService>();
+            
+            builder.Services.AddScoped<AuthService>();
+
             //builder.Services.AddScoped<ITempUserRoleService, TempUserRoleService>();
             var app = builder.Build();
 
