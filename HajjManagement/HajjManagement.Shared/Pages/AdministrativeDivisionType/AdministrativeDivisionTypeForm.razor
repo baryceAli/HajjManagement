@@ -1,0 +1,112 @@
+﻿@page "/AdministrativeDivisionType/Form/{Id:int?}"
+@page "/AdministrativeDivisionType/Form"
+
+@using CoreBusiness
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<AdministrativeDivisionType> AdministrativeDivisionTypeService
+@inject IGenericAPIService<Country> CountryService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="administrativeDivisionType" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="NameAr" class="form-label">الاسم بالعربية</label>
+                <InputText id="NameAr" class="form-control" @bind-Value="administrativeDivisionType.NameAr" />
+            </div>
+
+            <div class="mb-3">
+                <label for="NameEn" class="form-label">الاسم بالإنجليزية</label>
+                <InputText id="NameEn" class="form-control" @bind-Value="administrativeDivisionType.NameEn" />
+            </div>
+
+            <div class="mb-3">
+                <label for="Level" class="form-label">المستوى</label>
+                <InputNumber id="Level" class="form-control" @bind-Value="administrativeDivisionType.Level" />
+            </div>
+
+            <div class="mb-3">
+                <label for="CountryId" class="form-label">البلد</label>
+                @* <InputSelect class="form-control" @bind-Value="administrativeDivisionType.CountryId">
+                    @foreach (var country in countries)
+                    {
+                        <option value="@country.CountryId">@country.Name</option>
+                    }
+                </InputSelect> *@
+                @if(countries!=null && countries.Any()){
+
+                <select id="country-select" class="form-control" @bind="administrativeDivisionType.CountryId">
+                    <option value="">Select a country...</option>
+                    @foreach (var country in countries)
+                    {
+                        <option value="@country.CountryId">@country.Name</option>
+                    }
+                </select>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+            <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    private string title = "إضافة مستوى تقسيم إداري";
+    private AdministrativeDivisionType? administrativeDivisionType = new(); // Field to hold the current AdministrativeDivisionType
+
+    private List<Country> countries = new();
+
+    [Inject] IJSRuntime JS { get; set; }
+
+
+    override protected async Task OnInitializedAsync()
+    {
+        countries = (await CountryService.GetAllAsync()).ToList();
+        if (Id.HasValue && Id.Value > 0)
+        {
+            title = "تعديل مستوى تقسيم إداري";
+            administrativeDivisionType = await AdministrativeDivisionTypeService.GetByIdAsync(Id.Value);
+            // administrativeDivisionType.include(c => c.Country);
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+        }
+    }
+    private async Task HandleValidSubmit()
+    {
+        
+        var country = countries.FirstOrDefault(c => c.CountryId == administrativeDivisionType.CountryId);
+        
+
+        if (administrativeDivisionType!.AdministrativeDivisionTypeId == 0)
+        {
+            administrativeDivisionType.CreatedAt = DateTime.UtcNow;
+            administrativeDivisionType.UpdatedAt = DateTime.UtcNow;
+            await AdministrativeDivisionTypeService.AddAsync(administrativeDivisionType);
+        }
+        else
+        {
+            administrativeDivisionType.UpdatedAt = DateTime.UtcNow;
+            await AdministrativeDivisionTypeService.UpdateAsync(administrativeDivisionType);
+        }
+
+        NavigationManager.NavigateTo("/AdministrativeDivisionType/List");
+    }
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/AdministrativeDivisionType/List");
+    }
+}

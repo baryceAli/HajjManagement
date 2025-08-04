@@ -1,0 +1,227 @@
+﻿@page "/Country/List"
+@using HajjManagement.Shared.Services
+@using CoreBusiness
+@inject IGenericAPIService<Country> CountryService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3 class="mb-4">الدول</h3>
+    </div>
+    <div class="card-body">
+        <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+
+        @if (countries == null)
+        {
+            <p>جاري التحميل...</p>
+        }
+        else if (!countries.Any())
+        {
+            <p>لا توجد بيانات.</p>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th @onclick="SortById" style="cursor:pointer">@(currentSortColumn == "Id" ? (sortAscending ? "↑" : "↓") : "") #</th>
+                        <th @onclick="SortByContinent" style="cursor:pointer">@(currentSortColumn == "Continent" ? (sortAscending ? "↑" : "↓") : "") القارة</th>
+                        <th @onclick="SortByName" style="cursor:pointer">@(currentSortColumn == "Name" ? (sortAscending ? "↑" : "↓") : "") اسم الدولة</th>
+                        <th @onclick="SortByCode" style="cursor:pointer">@(currentSortColumn == "Code" ? (sortAscending ? "↑" : "↓") : "") الرمز</th>
+                        <th @onclick="SortByCapital" style="cursor:pointer">@(currentSortColumn == "Capital" ? (sortAscending ? "↑" : "↓") : "") العاصمة</th>
+                        <th @onclick="SortByCurrency" style="cursor:pointer">@(currentSortColumn == "Currency" ? (sortAscending ? "↑" : "↓") : "") العملة</th>
+                        <th @onclick="SortByLanguage" style="cursor:pointer">@(currentSortColumn == "Language" ? (sortAscending ? "↑" : "↓") : "") اللغة</th>
+                        <th>العلم</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th><input class="form-control" type="text" id="blazor-error-ui" @bind="searchContinent" /></th>
+                        <th><input class="form-control" type="text" id="searchName" @bind="searchName" /></th>
+                        <th><input class="form-control" type="text" id="searchCode" @bind="searchCode" /></th>
+                        <th><input class="form-control" type="text" id="searchCapital" @bind="searchCapital" /></th>
+                        <th><input class="form-control" type="text" id="searchCurrency" @bind="searchCurrency" /></th>
+                        <th><input class="form-control" type="text" id="searchLanguage" @bind="searchLanguage" /></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @* @foreach (var item in administrativeDivisionTypes) *@
+                    @* @foreach (var item in FilteredItems) *@
+                    @foreach (var item in PagedItems)
+                    {
+                        <tr>
+                            <td>@item.CountryId</td>
+                            <td>@item.Continent</td>
+                            <td>@item.Name</td>
+                            <td>@item.Code</td>
+                            <td>@item.Capital</td>
+                            <td>@item.Currency</td>
+                            <td>@item.Language</td>
+                            <td>
+                                @* @item.FlagUrl *@
+                                @if (!string.IsNullOrEmpty(item.FlagUrl))
+                                {
+                                    <img src="@item.FlagUrl" alt="Flag" width="40" height="25" style="object-fit:cover;" />
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-2" @onclick="() => ViewDetails(item.CountryId)"><i class="bi bi-list-columns"></i></button>
+                                <button class="btn btn-sm btn-warning me-2" @onclick="() => Edit(item.CountryId)"><i class="bi bi-pencil-square"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="row w-100 justify-content-between">
+                <div class="col-auto text-start">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
+                            </li>
+                            @for (int tablePage = 1; tablePage <= TotalPages; tablePage++)
+                            {
+                                var indexPage = tablePage;
+                                <!-- Capture current value in a local variable -->
+                                <li class="page-item @(currentPage == indexPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(indexPage)">@indexPage</button>
+                                </li>
+                            }
+                            <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-auto text-end">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="pageSizeSelector" class="me-2">عدد العناصر لكل صفحة:</label>
+                        <select id="pageSizeSelector" class="form-select w-auto" @onchange="OnPageSizeChanged">
+                            @foreach (var size in pageSizeOptions)
+                            {
+                                <option value="@size" selected="@(size == pageSize)">
+                                    @size
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+
+@code {
+    // Add property to hold the list of AdministrativeDivisionTypes
+    // private List<AdministrativeDivisionType> administrativeDivisionTypes = new();
+    private List<Country> countries = new();
+
+    //Filter properties
+    private string searchName = string.Empty;
+    private string searchCode = string.Empty;
+    private string searchContinent = string.Empty;
+    private string searchCapital = string.Empty;
+    private string searchCurrency = string.Empty;
+    private string searchLanguage = string.Empty;
+    // private string searchLanguage = string.Empty;
+
+    //Pagination properties
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private List<int> pageSizeOptions = new() { 10, 25, 50, 75, 100 };
+
+    private IEnumerable<Country> PagedItems =>
+        FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
+
+    private int TotalPages => (int)Math.Ceiling(countries.Count() / (double)pageSize); // Update to use countries
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+            currentPage = page;
+    }
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        pageSize = int.Parse(e.Value.ToString() ?? "10");
+        currentPage = 1;
+        StateHasChanged();
+    }
+    //Sorting properties (if needed)
+    private string currentSortColumn = "";
+    private bool sortAscending = true;
+    void SortById() => SortBy("Id");
+    void SortByName() => SortBy("Name");
+    void SortByCode() => SortBy("Code");
+    void SortByContinent() => SortBy("Continent");
+    void SortByCapital() => SortBy("Capital");
+    void SortByCurrency() => SortBy("Currency");
+    void SortByLanguage() => SortBy("Language");
+    private IEnumerable<Country> FilteredItems =>
+    countries
+        .Where(item =>
+            (string.IsNullOrWhiteSpace(searchContinent) || item.Continent.ToString().Contains(searchContinent, StringComparison.OrdinalIgnoreCase)==true) &&
+            (string.IsNullOrWhiteSpace(searchName) || item.Name?.Contains(searchName, StringComparison.OrdinalIgnoreCase) == true) &&
+            (string.IsNullOrWhiteSpace(searchCode) || item.Code?.Contains(searchCode, StringComparison.OrdinalIgnoreCase) == true) &&
+            (string.IsNullOrWhiteSpace(searchCapital) || item.Capital.ToString().Contains(searchCapital, StringComparison.OrdinalIgnoreCase)==true) &&
+            (string.IsNullOrWhiteSpace(searchCurrency) || item.Currency.ToString().Contains(searchCurrency, StringComparison.OrdinalIgnoreCase)==true) &&
+            (string.IsNullOrWhiteSpace(searchLanguage) || item.Language.ToString().Contains(searchLanguage, StringComparison.OrdinalIgnoreCase)==true)
+        )
+        .OrderBy(item => 0) // dummy so we can chain
+        .ThenBy(item => currentSortColumn == "Id" && sortAscending ? item.CountryId : 0)
+        .ThenByDescending(item => currentSortColumn == "Id" && !sortAscending ? item.CountryId : 0)
+        .ThenBy(item => currentSortColumn == "Name" && sortAscending ? item.Name : null)
+        .ThenByDescending(item => currentSortColumn == "Name" && !sortAscending ? item.Name : null)
+        .ThenBy(item => currentSortColumn == "Code" && sortAscending ? item.Code : null)
+        .ThenByDescending(item => currentSortColumn == "Code" && !sortAscending ? item.Code : null)
+        .ThenBy(item => currentSortColumn == "Continent" && sortAscending ? item.Continent.ToString() : null)
+        .ThenByDescending(item => currentSortColumn == "Continent" && !sortAscending ? item.Continent.ToString() : null)
+        .ThenBy(item => currentSortColumn == "Currency" && sortAscending ? item.Currency.ToString() : null)
+        .ThenByDescending(item => currentSortColumn == "Currency" && !sortAscending ? item.Currency.ToString() : null)
+        .ThenBy(item => currentSortColumn == "Language" && sortAscending ? item.Language.ToString() : null) // corrected from Currency to Language
+        .ThenByDescending(item => currentSortColumn == "Language" && !sortAscending ? item.Language.ToString() : null); // corrected from Currency to Language
+
+
+        // Method to fetch data from the API
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            countries = (await CountryService.GetAllAsync()).ToList();
+            // administrativeDivisionTypes = (await AdministrativeDivisionTypeService.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching data: {ex.Message}");
+            countries = new List<Country>();
+        }
+    }
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/Country/Form");
+    }
+
+    private void ViewDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/Country/Details/{id}");
+    }
+
+    private void Edit(int id)
+    {
+        NavigationManager.NavigateTo($"/Country/Form/{id}");
+    }
+    private void SortBy(string columnName)
+    {
+        if (currentSortColumn == columnName)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            currentSortColumn = columnName;
+            sortAscending = true;
+        }
+    }
+}
