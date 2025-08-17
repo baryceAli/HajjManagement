@@ -19,7 +19,6 @@ namespace Infrastructure.Plugin.Datastore.SQLServer
         }
 
         public DbSet<AdministrativeDivision> AdministrativeDivisions { get; set; }
-        public DbSet<AdministrativeDivisionType> AdministrativeDivisionTypes { get; set; }
         public DbSet<Bag> Bags { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Country> Countries { get; set; }
@@ -35,9 +34,11 @@ namespace Infrastructure.Plugin.Datastore.SQLServer
             base.OnModelCreating(modelBuilder);
 
             SeedData.SeedCountries(modelBuilder);
-            SeedData.SeedRoles(modelBuilder);
+         //SeedData.SeedRolesAsync(modelBuilder).GetAwaiter().GetResult();
+            //SeedData.SeedRoles(modelBuilder);
 
 
         }
+        
     }
 }

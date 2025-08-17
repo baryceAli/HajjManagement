@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CoreBusiness.Dtos;
+using HajjManagement.Shared.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
@@ -21,6 +23,8 @@ namespace HajjManagement.Shared.Services
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
+            //_httpClient.DefaultRequestHeaders.Accept.Clear();
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
             return await _httpClient.GetFromJsonAsync<IEnumerable<T>>($"") ?? new List<T>();
         }
 
@@ -34,13 +38,38 @@ namespace HajjManagement.Shared.Services
         {
             try
             {
-            var response = await _httpClient.PostAsJsonAsync($"", entity);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<T>();
+                var response = await _httpClient.PostAsJsonAsync($"", entity);
+                
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<T>();
             }
             catch (Exception ex)
             {
                 var mes=ex.ToString();
+                //return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+                throw;
+            }
+        }
+        public async Task<AuthResponse> LoginAsync(T entity)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"", entity);
+
+                // Read response content first
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // You can throw a detailed exception or handle it
+                    throw new Exception($"Login failed: {response.StatusCode} - {content}");
+                }
+                //response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<AuthResponse>();
+            }
+            catch (Exception ex)
+            {
+                var mes = ex.ToString();
                 //return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
                 throw;
             }

@@ -1,7 +1,10 @@
 using CoreBusiness;
+using CoreBusiness.Dtos;
 using HajjManagement.Shared.Services;
+using HajjManagement.Shared.Utilities;
 using HajjManagement.Web.Components;
 using HajjManagement.Web.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 
 namespace HajjManagement
@@ -19,10 +22,10 @@ namespace HajjManagement
                 client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivision/");
             });
 
-            builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivisionType>, GenericAPIService<AdministrativeDivisionType>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivisionType/");
-            });
+            //builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivisionType>, GenericAPIService<AdministrativeDivisionType>>(client =>
+            //{
+            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivisionType/");
+            //});
 
 
             builder.Services.AddHttpClient<IGenericAPIService<Bag>, GenericAPIService<Bag>>(client =>
@@ -67,6 +70,11 @@ namespace HajjManagement
             {
                 client.BaseAddress = new Uri($"{APIBaseUri}/api/Role/");
             });
+            builder.Services.AddHttpClient<IGenericAPIService<LoginDto>, GenericAPIService<LoginDto>>(client =>
+            {
+                client.BaseAddress = new Uri($"{APIBaseUri}/api/User/login/");
+            });
+
             //builder.Services.AddHttpClient<IGenericAPIService<TempUserRole>, GenericAPIService<TempUserRole>>(client =>
             //{
             //    client.BaseAddress = new Uri($"{APIBaseUri}/api/UserRole/");
@@ -81,6 +89,9 @@ namespace HajjManagement
             {
                 options.DetailedErrors = true;
             });
+
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
             // Add device-specific services used by the HajjManagement.Shared project
             builder.Services.AddSingleton<IFormFactor, FormFactor>();

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Infrastructure.Interfaces
 {
     public interface ICountryService : IGenericService<Country> { }    
-    public interface IAdministrativeDivisionTypeService : IGenericService<AdministrativeDivisionType> { }
+    //public interface IAdministrativeDivisionTypeService : IGenericService<AdministrativeDivisionType> { }
     public interface IAdministrativeDivisionService : IGenericService<AdministrativeDivision> { }
     public interface IContractService : IGenericService<Contract> { }
     public interface IBagService : IGenericService<Bag> { }

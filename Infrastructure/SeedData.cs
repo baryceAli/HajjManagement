@@ -1,8 +1,12 @@
 ﻿using CoreBusiness;
 using Infrastructure.Plugin.Datastore.SQLServer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -12,44 +16,103 @@ namespace Infrastructure
 {
     public static class SeedData
     {
+
         public static void Initialize(ApplicationDbContext context)
         {
             context.Database.EnsureCreated();
         }
-        public static void SeedUser(ModelBuilder modelBuilder)
-        {
-            //modelBuilder.Entity<User>().HasData(
-            //        new User { Id=1,CountryId= 151 ,Email= "baryce@gmail.com", EmailConfirmed=true,FirstName="Bashir", LastName="Mohamed Ali",
-            //            NormalizedUserName="Bashir", NormalizedEmail="Bashir",UserName="Bashir"
-            //        }
-            //    );
-        }
-        public static void SeedRoles(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Role>().HasData(
-                    new Role { Id = 1, Name = "MainSuperAdmin", NormalizedName = "Main Super Admin", Description = "Create users of all levels" },
-                    new Role { Id = 2, Name = "MainAdmin", NormalizedName = "Main Admin", Description = "Create users of all levels under him" },
-                    new Role { Id = 3, Name = "MainDataEntry", NormalizedName = "Main Data Entry", Description = "Modify data of all levels" },
-                    new Role { Id = 4, Name = "CompanySuperAdmin", NormalizedName = "Company Super Admin", Description = "Create users of all levels" },
-                    new Role { Id = 5, Name = "CompanyAdmin", NormalizedName = "Company Admin", Description = "Create users of all levels under him" },
-                    new Role { Id = 6, Name = "CompanyDataEntry", NormalizedName = "Company Data Entry", Description = "Modify data of all levels" },
-                    new Role { Id = 7, Name = "SuperAdmin", NormalizedName = "Super Admin", Description = "Create users of all levels within a country" },
-                    new Role { Id = 8, Name = "Admin", NormalizedName = "Admin", Description = "Create users of all levels under him within a country" },
-                    new Role { Id = 9, Name = "DataEntry", NormalizedName = "Data Entry", Description = "Modify data of all levels within a country" },
-                    new Role { Id = 10, Name = "Supervisor", NormalizedName = "Supervisor", Description = "Enter Guests Data within his supervision" }
 
-                );
-        }
-        public static void SeedCountries(ApplicationDbContext context)
+        public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
-            if (!context.Countries.Any())
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
+
+            List<Role> roles = new List<Role>
             {
-                context.Countries.AddRange(
-                   new Country { CountryId = 1, Name = "Afghanistan", Code = "AF", Continent = "Asia", Capital = "Kabul", Currency = "AFN", Language = "Pashto/Dari", FlagUrl = "https://flagcdn.com/af.svg" }
+                new Role {  Name = RoleNames.MainSuperAdmin, NormalizedName = RoleNames.MainSuperAdmin.ToUpper(), Description = "Create users of all levels" },
+                new Role { Name = RoleNames.MainAdmin, NormalizedName = RoleNames.MainAdmin.ToUpper(), Description = "Create users of all levels under him" },
+                new Role { Name = RoleNames.MainDataEntry, NormalizedName = RoleNames.MainDataEntry.ToUpper(), Description = "Modify data of all levels" },
+                new Role { Name = RoleNames.CompanySuperAdmin, NormalizedName = RoleNames.CompanySuperAdmin.ToUpper(), Description = "Create users of all levels" },
+                new Role { Name = RoleNames.CompanyAdmin, NormalizedName = RoleNames.CompanyAdmin.ToUpper(), Description = "Create users of all levels under him" },
+                new Role { Name = RoleNames.CompanyDataEntry, NormalizedName = RoleNames.CompanyDataEntry.ToUpper(), Description = "Modify data of all levels" },
+                new Role { Name = RoleNames.SuperAdmin, NormalizedName = RoleNames.SuperAdmin.ToUpper(), Description = "Create users of all levels within a country" },
+                new Role { Name = RoleNames.Admin, NormalizedName = RoleNames.Admin.ToUpper(), Description = "Create users of all levels under him within a country" },
+                new Role { Name = RoleNames.DataEntry, NormalizedName = RoleNames.DataEntry.ToUpper(), Description = "Modify data of all levels within a country" },
+                new Role { Name = RoleNames.Supervisor, NormalizedName = RoleNames.Supervisor.ToUpper(), Description = "Enter Guests Data within his supervision" }
 
-                   );
-                context.SaveChanges();
+            };
+            try
+            {
+
+            
+                foreach (var role in roles)
+                {
+                    if (!await roleManager.RoleExistsAsync(role.Name!))
+                    {
+                        await roleManager.CreateAsync(role);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                var st = ex.ToString();
+                throw;
+            }
+
+            string mainSuperAdminPassword = "Admin@123";
+            User user = new User
+            {
+                FirstName = "Bashir",
+                LastName = "Mohamed Ali",
+                UserName = "MainSuperAdmin",
+                Passport = string.Empty,
+                IssuePlace = string.Empty,
+                Email = "",
+                Address = "",
+                AdministrativeDivisionId = 1,
+                PhoneNumber = "0000000000",
+            };
+
+            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+            var existingUser = await userManager.FindByNameAsync(user.UserName);
+
+            if (existingUser==null)
+            {
+                var result = await userManager.CreateAsync(user, mainSuperAdminPassword);
+                if (result.Succeeded)
+                {
+                    //var rolesList1= await roleManager.Roles.Select(r => r.Name).ToListAsync();
+                    foreach (var role in roles)
+                    {
+                        await userManager.AddToRoleAsync(user, role.Name!);
+                    }
+                }
+            }
+        }
+        //public static void SeedRoles(ModelBuilder modelBuilder)
+        //{
+        //    modelBuilder.Entity<Role>().HasData(
+        //            new Role { Id = 1, Name = RoleNames.MainSuperAdmin, NormalizedName = "Main Super Admin", Description = "Create users of all levels" },
+        //            new Role { Id = 2, Name = RoleNames.MainAdmin, NormalizedName = "Main Admin", Description = "Create users of all levels under him" },
+        //            new Role { Id = 3, Name = RoleNames.MainDataEntry, NormalizedName = "Main Data Entry", Description = "Modify data of all levels" },
+        //            new Role { Id = 4, Name = RoleNames.CompanySuperAdmin, NormalizedName = "Company Super Admin", Description = "Create users of all levels" },
+        //            new Role { Id = 5, Name = RoleNames.CompanyAdmin, NormalizedName = "Company Admin", Description = "Create users of all levels under him" },
+        //            new Role { Id = 6, Name = RoleNames.CompanyDataEntry, NormalizedName = "Company Data Entry", Description = "Modify data of all levels" },
+        //            new Role { Id = 7, Name = RoleNames.SuperAdmin, NormalizedName = "Super Admin", Description = "Create users of all levels within a country" },
+        //            new Role { Id = 8, Name = RoleNames.Admin, NormalizedName = "Admin", Description = "Create users of all levels under him within a country" },
+        //            new Role { Id = 9, Name = RoleNames.DataEntry, NormalizedName = "Data Entry", Description = "Modify data of all levels within a country" },
+        //            new Role { Id = 10, Name = RoleNames.Supervisor, NormalizedName = "Supervisor", Description = "Enter Guests Data within his supervision" }
+
+        //        );
+        //}
+
+        public static void SeedAdministrativeDivision(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AdministrativeDivision>().HasData(
+                new AdministrativeDivision { AdministrativeDivisionId = 1, Name = "مكة", CountryId = 151, ParentId = 0, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new AdministrativeDivision { AdministrativeDivisionId = 2, Name = "الطائف", CountryId = 151, ParentId = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new AdministrativeDivision { AdministrativeDivisionId = 3, Name = "تربة", CountryId = 151, ParentId = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new AdministrativeDivision { AdministrativeDivisionId = 4, Name = "وادي تربة", CountryId = 151, ParentId = 3, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            );
         }
         public static void SeedCountries(ModelBuilder modelBuilder)
         {

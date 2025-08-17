@@ -8,11 +8,294 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedCountries : Migration
+    public partial class InitMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "AdministrativeDivisions",
+                columns: table => new
+                {
+                    AdministrativeDivisionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ParentId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CountryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AdministrativeDivisions", x => x.AdministrativeDivisionId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Passport = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IssuePlace = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IssueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProfilePictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CountryId = table.Column<int>(type: "int", nullable: false),
+                    AdministrativeDivisionId = table.Column<int>(type: "int", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Bags",
+                columns: table => new
+                {
+                    BagId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ContractId = table.Column<int>(type: "int", nullable: true),
+                    SupervisorId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Bags", x => x.BagId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Contracts",
+                columns: table => new
+                {
+                    ContractId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ContractNo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Beds = table.Column<int>(type: "int", nullable: false),
+                    UsedBeds = table.Column<int>(type: "int", nullable: false),
+                    HotelId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Contracts", x => x.ContractId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Countries",
+                columns: table => new
+                {
+                    CountryId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Continent = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Capital = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Language = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FlagUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Countries", x => x.CountryId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Guests",
+                columns: table => new
+                {
+                    GuestId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GivenName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BagId = table.Column<int>(type: "int", nullable: false),
+                    AdministrativeDivisionId = table.Column<int>(type: "int", nullable: false),
+                    SupervisorId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Guests", x => x.GuestId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Hotels",
+                columns: table => new
+                {
+                    HotelId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone1 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone2 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Hotels", x => x.HotelId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Logs",
+                columns: table => new
+                {
+                    LogId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TableName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OperationType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StateBeforeActoin = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StateAfterAction = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    AdditionalInfo = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Logs", x => x.LogId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "Countries",
                 columns: new[] { "CountryId", "Capital", "Code", "Continent", "CreatedAt", "Currency", "FlagUrl", "Language", "Name", "UpdatedAt" },
@@ -214,985 +497,91 @@ namespace WebAPI.Migrations
                     { 194, "Lusaka", "ZM", "Africa", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ZMW", "https://flagcdn.com/zm.svg", "English", "Zambia", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 195, "Harare", "ZW", "Africa", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ZWL", "https://flagcdn.com/zw.svg", "English/Shona/Sindebele", "Zimbabwe", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoleClaims_RoleId",
+                table: "AspNetRoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "AspNetRoles",
+                column: "NormalizedName",
+                unique: true,
+                filter: "[NormalizedName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserClaims_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserLogins_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_RoleId",
+                table: "AspNetUserRoles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "AspNetUsers",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "AspNetUsers",
+                column: "NormalizedUserName",
+                unique: true,
+                filter: "[NormalizedUserName] IS NOT NULL");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 1);
+            migrationBuilder.DropTable(
+                name: "AdministrativeDivisions");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 2);
+            migrationBuilder.DropTable(
+                name: "AspNetRoleClaims");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 3);
+            migrationBuilder.DropTable(
+                name: "AspNetUserClaims");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 4);
+            migrationBuilder.DropTable(
+                name: "AspNetUserLogins");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 5);
+            migrationBuilder.DropTable(
+                name: "AspNetUserRoles");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 6);
+            migrationBuilder.DropTable(
+                name: "AspNetUserTokens");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 7);
+            migrationBuilder.DropTable(
+                name: "Bags");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 8);
+            migrationBuilder.DropTable(
+                name: "Contracts");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 9);
+            migrationBuilder.DropTable(
+                name: "Countries");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 10);
+            migrationBuilder.DropTable(
+                name: "Guests");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 11);
+            migrationBuilder.DropTable(
+                name: "Hotels");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 12);
+            migrationBuilder.DropTable(
+                name: "Logs");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 13);
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 14);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 15);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 16);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 17);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 18);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 19);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 20);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 21);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 22);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 23);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 24);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 25);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 26);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 27);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 28);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 29);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 30);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 31);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 32);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 33);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 34);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 35);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 36);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 37);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 38);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 39);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 40);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 41);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 42);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 43);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 44);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 45);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 46);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 47);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 48);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 49);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 50);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 51);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 52);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 53);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 54);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 55);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 56);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 57);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 58);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 59);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 60);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 61);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 62);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 63);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 64);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 65);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 66);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 67);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 68);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 69);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 70);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 71);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 72);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 73);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 74);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 75);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 76);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 77);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 78);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 79);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 80);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 81);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 82);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 83);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 84);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 85);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 86);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 87);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 88);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 89);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 90);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 91);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 92);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 93);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 94);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 95);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 96);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 97);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 98);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 99);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 100);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 101);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 102);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 103);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 104);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 105);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 106);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 107);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 108);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 109);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 110);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 111);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 112);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 113);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 114);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 115);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 116);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 117);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 118);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 119);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 120);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 121);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 122);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 123);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 124);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 125);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 126);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 127);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 128);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 129);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 130);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 131);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 132);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 133);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 134);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 135);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 136);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 137);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 138);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 139);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 140);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 141);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 142);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 143);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 144);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 145);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 146);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 147);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 148);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 149);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 150);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 151);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 152);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 153);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 154);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 155);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 156);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 157);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 158);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 159);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 160);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 161);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 162);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 163);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 164);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 165);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 166);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 167);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 168);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 169);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 170);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 171);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 172);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 173);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 174);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 175);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 176);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 177);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 178);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 179);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 180);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 181);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 182);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 183);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 184);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 185);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 186);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 187);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 188);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 189);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 190);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 191);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 192);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 193);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 194);
-
-            migrationBuilder.DeleteData(
-                table: "Countries",
-                keyColumn: "CountryId",
-                keyValue: 195);
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

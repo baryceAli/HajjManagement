@@ -1,6 +1,202 @@
 ﻿@page "/AdministrativeDivision/List"
-<h3>AdministrativeDivisionList</h3>
+@using HajjManagement.Shared.Services
+@using CoreBusiness
+@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionTypeService
+@inject IGenericAPIService<Country> CountryService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3 class="mb-4">مستوى التقسيم الإداري</h3>
+    </div>
+    <div class="card-body">
+        <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+
+        @if (administrativeDivisionTypes == null)
+        {
+            <p>جاري التحميل...</p>
+        }
+        else if (!administrativeDivisionTypes.Any())
+        {
+            <p>لا توجد بيانات.</p>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th @onclick="SortById" style="cursor:pointer">@(currentSortColumn == "Id" ? (sortAscending ? "↑" : "↓") : "") #</th>
+                        <th @onclick="SortByNameAr" style="cursor:pointer">@(currentSortColumn == "NameAr" ? (sortAscending ? "↑" : "↓") : "") اسم المستوى (عربي) </th>
+                        <th @onclick="SortByNameEn" style="cursor:pointer">@(currentSortColumn == "NameEn" ? (sortAscending ? "↑" : "↓") : "") اسم المستوى (إنجليزي)</th>
+                        <th @onclick="SortByCountry" style="cursor:pointer">@(currentSortColumn == "Country" ? (sortAscending ? "↑" : "↓") : "") البلد</th>
+                        <th @onclick="SortByLevel" style="cursor:pointer">@(currentSortColumn == "Level" ? (sortAscending ? "↑" : "↓") : "") المستوى</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th><input class="form-control" type="text" id="searchNameAr" @bind="searchNameAr" /></th>
+                        <th><input class="form-control" type="text" id="searchNameEn" @bind="searchNameEn" /></th>
+                        <th><input class="form-control" type="text" id="searchCountry" @bind="searchCountry" /></th>
+                        <th><input class="form-control" type="text" id="searchLevel" @bind="searchLevel" /></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @* @foreach (var item in administrativeDivisionTypes) *@
+                    @* @foreach (var item in FilteredItems) *@
+                    @foreach (var item in PagedItems)
+                    {
+                        <tr>
+                            <td>@item.AdministrativeDivisionId</td>
+                            <td>@item.Name</td>
+                            <td>@item.Name</td>
+                            <td>@(countries.First(c => c.CountryId == item.CountryId).Name)</td> <!-- Replace with item.Country?.Name if eager loaded -->
+                            <td>@item.ParentId</td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-2" @onclick="() => ViewDetails(item.AdministrativeDivisionId)"><i class="bi bi-list-columns"></i></button>
+                                <button class="btn btn-sm btn-warning me-2" @onclick="() => Edit(item.AdministrativeDivisionId)"><i class="bi bi-pencil-square"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="row w-100 justify-content-between">
+                <div class="col-auto text-start">
+                    <nav>
+                        <ul class="pagination">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
+                            </li>
+                            @for (int tablePage = 1; tablePage <= TotalPages; tablePage++)
+                            {
+                                var indexPage = tablePage;
+                                <!-- Capture current value in a local variable -->
+                                <li class="page-item @(currentPage == indexPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(indexPage)">@indexPage</button>
+                                </li>
+                            }
+                            <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-auto text-end">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="pageSizeSelector" class="me-2">عدد العناصر لكل صفحة:</label>
+                        <select id="pageSizeSelector" class="form-select w-auto" @onchange="OnPageSizeChanged">
+                            @foreach (var size in pageSizeOptions)
+                            {
+                                <option value="@size" selected="@(size == pageSize)">
+                                    @size
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
 
 @code {
+    // Add property to hold the list of AdministrativeDivisionTypes
+    private List<AdministrativeDivision> administrativeDivisionTypes = new();
+    private List<Country> countries = new();
 
+    //Filter properties
+    private string searchNameAr = string.Empty;
+    private string searchNameEn = string.Empty;
+    private string searchCountry = string.Empty;
+    private string searchLevel = string.Empty;
+
+    //Pagination properties
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private List<int> pageSizeOptions = new() { 10, 25, 50, 75, 100 };
+
+    private IEnumerable<AdministrativeDivision> PagedItems =>
+        FilteredItems.Skip((currentPage - 1) * pageSize).Take(pageSize);
+
+    private int TotalPages => (int)Math.Ceiling(FilteredItems.Count() / (double)pageSize);
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+            currentPage = page;
+    }
+    private async Task OnPageSizeChanged(ChangeEventArgs e)
+    {
+        pageSize = int.Parse(e.Value.ToString() ?? "10");
+        currentPage = 1;
+        StateHasChanged();
+    }
+    //Sorting properties (if needed)
+    private string currentSortColumn = "";
+    private bool sortAscending = true;
+    void SortById() => SortBy("Id");
+    void SortByNameAr() => SortBy("NameAr");
+    void SortByNameEn() => SortBy("NameEn");
+    void SortByCountry() => SortBy("Country");
+    void SortByLevel() => SortBy("Level");
+    private IEnumerable<AdministrativeDivision> FilteredItems =>
+    administrativeDivisionTypes
+        .Where(item =>
+            (string.IsNullOrWhiteSpace(searchNameAr) || item.Name?.Contains(searchNameAr, StringComparison.OrdinalIgnoreCase) == true) &&
+            (string.IsNullOrWhiteSpace(searchNameEn) || item.Name?.Contains(searchNameEn, StringComparison.OrdinalIgnoreCase) == true) &&
+            (string.IsNullOrWhiteSpace(searchCountry) || countries.FirstOrDefault(c => c.CountryId == item?.CountryId)?.Name?.Contains(searchCountry, StringComparison.OrdinalIgnoreCase) == true) &&
+            (string.IsNullOrWhiteSpace(searchLevel) || item.ParentId.ToString().Contains(searchLevel))
+        )
+        .OrderBy(item => 0) // dummy so we can chain
+        .ThenBy(item => currentSortColumn == "Id" && sortAscending ? item.AdministrativeDivisionId : 0)
+        .ThenByDescending(item => currentSortColumn == "Id" && !sortAscending ? item.AdministrativeDivisionId : 0)
+        .ThenBy(item => currentSortColumn == "NameAr" && sortAscending ? item.Name: null)
+        .ThenByDescending(item => currentSortColumn == "NameAr" && !sortAscending ? item.Name: null)
+        .ThenBy(item => currentSortColumn == "NameEn" && sortAscending ? item.Name: null)
+        .ThenByDescending(item => currentSortColumn == "NameEn" && !sortAscending ? item.Name: null)
+        .ThenBy(item => currentSortColumn == "Country" && sortAscending ? countries.FirstOrDefault(c => c.CountryId == item.CountryId)?.Name : null)
+        .ThenByDescending(item => currentSortColumn == "Country" && !sortAscending ? countries.FirstOrDefault(c => c.CountryId == item.CountryId)?.Name : null)
+        .ThenBy(item => currentSortColumn == "Level" && sortAscending ? item.ParentId.ToString() : null)
+        .ThenByDescending(item => currentSortColumn == "Level" && !sortAscending ? item.ParentId.ToString() : null);
+    // Method to fetch data from the API
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            countries = (await CountryService.GetAllAsync()).ToList();
+            administrativeDivisionTypes = (await AdministrativeDivisionTypeService.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching data: {ex.Message}");
+            administrativeDivisionTypes = new List<AdministrativeDivision>();
+        }
+    }
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/AdministrativeDivisionType/Form");
+    }
+
+    private void ViewDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/AdministrativeDivisionType/Details/{id}");
+    }
+
+    private void Edit(int id)
+    {
+        NavigationManager.NavigateTo($"/AdministrativeDivisionType/Form/{id}");
+    }
+    private void SortBy(string columnName)
+    {
+        if (currentSortColumn == columnName)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            currentSortColumn = columnName;
+            sortAscending = true;
+        }
+    }
 }

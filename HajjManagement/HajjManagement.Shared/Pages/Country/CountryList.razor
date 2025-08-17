@@ -1,10 +1,18 @@
 ﻿@page "/Country/List"
 @using HajjManagement.Shared.Services
 @using CoreBusiness
+@using HajjManagement.Shared.Utilities
+@using Microsoft.AspNetCore.Authorization
 @inject IGenericAPIService<Country> CountryService
 @inject NavigationManager NavigationManager
 
-<div class="card shadow" dir="rtl">
+@* @attribute [Authorize(Roles = "MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin")] *@
+@* @attribute [Authorize(Roles = "Supervisor")] *@
+    
+@* <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin"> *@
+<Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="supervisor">
+    <Authorized>
+        <div class="card shadow" dir="rtl">
     <div class="card-header">
         <h3 class="mb-4">الدول</h3>
     </div>
@@ -113,6 +121,15 @@
 
     </div>
 </div>
+    </Authorized>
+    <NotAuthorized>
+        <HajjManagement.Shared.Pages.Common.ErrorMessage Header="@CommonErrorMesages.NOT_AUTHORIZED_PAGE_ACCESS_Header"
+                                                         Message="@CommonErrorMesages.NOT_AUTHORIZED_PAGE_ACCESS_Message" 
+                                                         Details="@CommonErrorMesages.NOT_AUTHORIZED_PAGE_ACCESS_Details" />
+                                                         
+        @* </HajjManagement.Shared.Pages.Common.ErrorMessage> *@
+    </NotAuthorized>
+</Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
 
 
 @code {

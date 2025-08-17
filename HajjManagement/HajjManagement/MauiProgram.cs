@@ -35,10 +35,10 @@ namespace HajjManagement
                 client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivision/");
             });
 
-            builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivisionType>, GenericAPIService<AdministrativeDivisionType>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivisionType/");
-            });
+            //builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivisionType>, GenericAPIService<AdministrativeDivisionType>>(client =>
+            //{
+            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivisionType/");
+            //});
 
 
             builder.Services.AddHttpClient<IGenericAPIService<Bag>, GenericAPIService<Bag>>(client =>

@@ -30,9 +30,6 @@ namespace WebAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdministrativeDivisionId"));
 
-                    b.Property<int>("AdministrativeDivisionTypeId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CountryId")
                         .HasColumnType("int");
 
@@ -52,39 +49,6 @@ namespace WebAPI.Migrations
                     b.HasKey("AdministrativeDivisionId");
 
                     b.ToTable("AdministrativeDivisions");
-                });
-
-            modelBuilder.Entity("CoreBusiness.AdministrativeDivisionType", b =>
-                {
-                    b.Property<int>("AdministrativeDivisionTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdministrativeDivisionTypeId"));
-
-                    b.Property<int>("CountryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("AdministrativeDivisionTypeId");
-
-                    b.ToTable("AdministrativeDivisionTypes");
                 });
 
             modelBuilder.Entity("CoreBusiness.Bag", b =>
@@ -2731,9 +2695,6 @@ namespace WebAPI.Migrations
                     b.Property<int>("AdministrativeDivisionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("AdministrativeDivisionTypeId")
-                        .HasColumnType("int");
-
                     b.Property<int>("BagId")
                         .HasColumnType("int");
 
@@ -2862,78 +2823,6 @@ namespace WebAPI.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Create users of all levels",
-                            Name = "MainSuperAdmin",
-                            NormalizedName = "Main Super Admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Create users of all levels under him",
-                            Name = "MainAdmin",
-                            NormalizedName = "Main Admin"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Modify data of all levels",
-                            Name = "MainDataEntry",
-                            NormalizedName = "Main Data Entry"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Create users of all levels",
-                            Name = "CompanySuperAdmin",
-                            NormalizedName = "Company Super Admin"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Description = "Create users of all levels under him",
-                            Name = "CompanyAdmin",
-                            NormalizedName = "Company Admin"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Description = "Modify data of all levels",
-                            Name = "CompanyDataEntry",
-                            NormalizedName = "Company Data Entry"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Description = "Create users of all levels within a country",
-                            Name = "SuperAdmin",
-                            NormalizedName = "Super Admin"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Description = "Create users of all levels under him within a country",
-                            Name = "Admin",
-                            NormalizedName = "Admin"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Description = "Modify data of all levels within a country",
-                            Name = "DataEntry",
-                            NormalizedName = "Data Entry"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Description = "Enter Guests Data within his supervision",
-                            Name = "Supervisor",
-                            NormalizedName = "Supervisor"
-                        });
                 });
 
             modelBuilder.Entity("CoreBusiness.User", b =>
@@ -2953,15 +2842,15 @@ namespace WebAPI.Migrations
                     b.Property<int>("AdministrativeDivisionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("AdministrativeDivisionTypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CountryId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -2970,8 +2859,17 @@ namespace WebAPI.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("IssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IssuePlace")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
@@ -2991,6 +2889,9 @@ namespace WebAPI.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Passport")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");

@@ -15,17 +15,28 @@ namespace WebAPI.Controllers
     //[Microsoft.AspNetCore.Mvc.ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IGenericService<User> service;
+        private readonly IUserService service;
+
+        //private readonly IGenericService<User> service;
+
         private readonly UserManager<User> userManager;
+        private readonly RoleManager<Role> roleManager;
         private readonly AuthService authService;
         private readonly JwtSettings jwtSettings;
 
         //private readonly IUserStore<IdentityUser> userStore;
 
-        public UserController(IGenericService<User> service, UserManager<User> userManager, AuthService authService, IOptions<JwtSettings> jwtSettings)
+        public UserController(
+            //IGenericService<User> service, 
+            IUserService service,
+                                UserManager<User> userManager,
+                                RoleManager<Role> RoleManager,
+                                AuthService authService, IOptions<JwtSettings> jwtSettings)
         {
             this.service = service;
+            //this.service = service;
             this.userManager = userManager;
+            roleManager = RoleManager;
             this.authService = authService;
             this.jwtSettings = jwtSettings.Value;
             //this.userStore = userStore;
@@ -45,7 +56,7 @@ namespace WebAPI.Controllers
                 Address = model.Address,
                 ProfilePictureUrl = model.ProfilePictureUrl,
                 CountryId = model.CountryId,
-                AdministrativeDivisionTypeId = model.AdministrativeDivisionTypeId,
+                //AdministrativeDivisionTypeId = model.AdministrativeDivisionTypeId,
                 AdministrativeDivisionId = model.AdministrativeDivisionId
             };
 
@@ -62,6 +73,7 @@ namespace WebAPI.Controllers
             }
             //return Ok(); // Placeholder for registration logic
         }
+        
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
@@ -85,6 +97,7 @@ namespace WebAPI.Controllers
             {
                 Message = "Login successful",
                 UserId = user.Id.ToString(),
+                User = user,
                 Token = token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
                 Roles = roles.ToList()

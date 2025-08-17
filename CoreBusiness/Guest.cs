@@ -19,8 +19,6 @@ namespace CoreBusiness
         //public Country? Country { get; set; }
         public int AdministrativeDivisionId { get; set; }
         //public AdministrativeDivision AdministrativeDivision { get; set; }
-        public int AdministrativeDivisionTypeId { get; set; }
-        //public AdministrativeDivisionType? AdministrativeDivisionType { get; set; }
         public int? SupervisorId { get; set; }
         //public int UserId { get; set; }
         //public User Supervisor { get; set; }

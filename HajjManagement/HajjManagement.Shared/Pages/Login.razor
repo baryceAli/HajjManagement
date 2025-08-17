@@ -1,34 +1,38 @@
 ﻿@page "/login"
 @layout LoginLayout
 @using CoreBusiness
+@using CoreBusiness.Dtos
 @using HajjManagement.Shared.Layout
+@using HajjManagement.Shared.Services
 @using HajjManagement.Shared.Utilities
+@using Microsoft.AspNetCore.Components.Authorization
 
+@inject IGenericAPIService<LoginDto> userService
 @inject NavigationManager NavigationManager
-
+@inject AuthenticationStateProvider AuthStateProvider
 <div class="container login-container d-flex align-items-center justify-content-center">
     <div class="row w-100">
         <div class="col-md-6 offset-md-3">
             <div class="card login-card p-4">
                 <div class="card-body">
                     <h3 class="card-title text-center mb-4">Login</h3>
-                    <form>
+                    <EditForm Model="@login" OnValidSubmit="HandleLogin">
                         <div class="mb-3">
                             <label for="userName" class="form-label">User name</label>
-                            <input type="text" class="form-control" id="userName" placeholder="Enter user name" required>
+                            <input type="text" class="form-control" @bind="login.LoginCode" id="userName" placeholder="Enter user name" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" placeholder="Password" required>
+                            <input type="password" class="form-control" @bind="login.Password" id="password" placeholder="Password" required>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="rememberMe">
                             <label class="form-check-label" for="rememberMe">Remember me</label>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary" @onclick="HandleLogin">Login</button>
+                            <button type="submit" class="btn btn-primary">Login</button>
                         </div>
-                    </form>
+                    </EditForm>
                     <div class="text-center mt-3">
                         <small><a href="#">Forgot password?</a></small>
                     </div>
@@ -38,12 +42,34 @@
     </div>
 </div>
 @code {
+    LoginDto login = new LoginDto();
     protected override void OnInitialized()
     {
+        login = new LoginDto
+            {
+                LoginCode = "MainSuperAdmin",
+                Password = "Admin@123"
+            };
         base.OnInitialized();
     }
-    private void HandleLogin()
+    private async Task HandleLogin()
     {
+        var loginResponse = await userService.LoginAsync(login);
+
+        if (loginResponse != null)
+        {
+            // GlobalData.User = user;
+            GlobalData.Token = loginResponse.Token;
+            GlobalData.User = loginResponse.User;
+
+            ((CustomAuthStateProvider)AuthStateProvider)
+                .NotifyUserAuthentication(loginResponse.Token);
+
+            NavigationManager.NavigateTo("/");
+
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         User user = new User() // Change TempUser to User to match type definition
         {
             Id = 1,
@@ -54,9 +80,7 @@
 
         };
 
-        GlobalData.User = user;
-
-        NavigationManager.NavigateTo("/");
+        
         // Handle login logic here
     }
 }
