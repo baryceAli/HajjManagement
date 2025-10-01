@@ -1,6 +1,8 @@
 ﻿using CoreBusiness;
 using CoreBusiness.Dtos;
 using Infrastructure.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+
 //using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -73,9 +75,11 @@ namespace WebAPI.Controllers
             }
             //return Ok(); // Placeholder for registration logic
         }
+ 
         
         [HttpPost]
         [Route("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             var user = await userManager.FindByNameAsync(model.LoginCode);

@@ -1,26 +1,45 @@
-﻿<div class="container error-container">
+﻿@inject NavigationManager NavigationManager
+@* <div class="container error-container">
     <div class="error-message">
         <h1 class="display-4 text-danger">@(Header ?? "")</h1>
         <h2 class="mb-3">@(Message ?? "")</h2>
         <p class="mb-4">@(Details ?? "")</p>
         <a href="/" class="btn btn-primary btn-lg">Go to Home</a>
     </div>
+</div> *@
+<!-- Modal -->
+<div class="modal fade" id="unauthorizedModal" tabindex="-1" aria-labelledby="unauthorizedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger text-center" id="unauthorizedModalLabel">@(Header??"")</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@(Message??"")</p>
+                <p>@(Details??"")</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <a id="goBackBtn" href="/" class="btn btn-primary">Go to Home</a>
+
+            </div>
+        </div>
+    </div>
 </div>
-<style>
+<!-- Script to automatically show modal on page load -->
+<script>
+      // Initialize modal
+    var unauthorizedModal = new bootstrap.Modal(document.getElementById('unauthorizedModal'));
+    unauthorizedModal.show();
 
-    .error-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-        text-align: center;
-        padding: 20px;
-    }
-
-    .error-message {
-        /* max-width: 500px; */
-    }
-</style>
+    // Close modal when "Go to Home" is clicked
+    document.getElementById('goBackBtn').addEventListener('click', function () {
+      unauthorizedModal.hide(); // closes the modal
+       // history.back();           // navigates to previous page
+      // Optional: redirect to home page
+      // window.location.href = '/';
+    });
+</script>
 @code {
     [Parameter]
     public string Header { get; set; }

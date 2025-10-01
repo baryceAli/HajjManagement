@@ -6,11 +6,8 @@
 @inject IGenericAPIService<Country> CountryService
 @inject NavigationManager NavigationManager
 
-@* @attribute [Authorize(Roles = "MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin")] *@
-@* @attribute [Authorize(Roles = "Supervisor")] *@
-    
-@* <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin"> *@
-<Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="supervisor">
+<Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
+@* <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="supervisor"> *@
     <Authorized>
         <div class="card shadow" dir="rtl">
     <div class="card-header">

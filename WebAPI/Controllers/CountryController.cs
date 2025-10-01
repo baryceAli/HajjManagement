@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 namespace WebAPI.Controllers
 {
 
-    [Authorize(Roles = "MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin")]
+    //[Authorize(Roles = "MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin")]
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class CountryController : ControllerBase
@@ -21,12 +22,15 @@ namespace WebAPI.Controllers
             this.service = service;
         }
 
+
         [HttpGet]
         public async Task<IActionResult> Get() 
         {
             var countries =await service.GetAllAsync();
             return Ok(countries);
         }
+
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {

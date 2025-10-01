@@ -30,6 +30,7 @@ namespace HajjManagement.Shared.Services
 
         public async Task<T> GetByIdAsync(int id)
         {
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
             return await _httpClient.GetFromJsonAsync<T>($"{id}");
 
         }
@@ -38,6 +39,7 @@ namespace HajjManagement.Shared.Services
         {
             try
             {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
                 var response = await _httpClient.PostAsJsonAsync($"", entity);
                 
                 response.EnsureSuccessStatusCode();
@@ -77,6 +79,7 @@ namespace HajjManagement.Shared.Services
 
         public async Task<T> UpdateAsync(T entity)
         {
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
             var response = await _httpClient.PutAsJsonAsync($"", entity);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<T>();
@@ -84,6 +87,7 @@ namespace HajjManagement.Shared.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
             var response = await _httpClient.DeleteAsync($"{id}");
             return response.IsSuccessStatusCode;
         }

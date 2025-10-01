@@ -5,73 +5,74 @@
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="Supervisor">
+    <Authorized>
+        <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+            <nav class="flex-column">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    </NavLink>
+                </div>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Country/List">
+                        <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> الدول
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="AdministrativeDivision/List">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> التقسيم الاداري
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="bag/List">
+                        <span class="bi bi-briefcase-fill text-lg-start" style="position: relative; bottom: 25px;" aria-hidden="true"></span>
+
+                        الحقيبة
+
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Contract/List">
+                        <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> العقود
+                    </NavLink>
+                </div>
+
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Guest/List">
+                        <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> الزوار
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Hotel/List">
+                        <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> الفنادق
+                    </NavLink>
+                </div>
+
+                @* <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Roles="ss"> *@
+                <Microsoft.AspNetCore.Components.Authorization.AuthorizeView Context="cntxt" Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="User/List">
+                                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> إدارة المستخدمين
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="User/List">
+                        <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> تغيير كلمة المرور
+                    </NavLink>
+                </div>
+            </nav>
         </div>
-
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="Country/List">
-                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> الدول
-            </NavLink>
-        </div>
-
-        @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="AdministrativeDivisionType/List">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> نوع التقسيم الاداري
-            </NavLink>
-        </div> *@
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="AdministrativeDivision/List">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> التقسيم الاداري
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bag/List">
-                <span class="bi bi-briefcase-fill text-lg-start" style="position: relative; bottom: 25px;" aria-hidden="true"></span>
-               
-                الحقيبة
-
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="Contract/List">
-                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> العقود
-            </NavLink>
-        </div>
-
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="Guest/List">
-                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> الزوار
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="Hotel/List">
-                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> الفنادق
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="User/List">
-                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> إدارة المستخدمين
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="User/List">
-                <i class="bi bi-briefcase-fill text-white me-2" aria-hidden="true"></i> تغيير كلمة المرور
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
+    </Authorized>
+</Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
