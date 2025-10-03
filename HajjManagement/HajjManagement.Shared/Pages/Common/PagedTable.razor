@@ -1,0 +1,170 @@
+﻿@typeparam TItem
+
+<div dir="@Direction">
+    <div class="card">
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                @foreach (var column in Columns)
+                {
+                    <th @onclick="() => Sort(column.Property)" style="cursor:pointer">
+                        @column.Title
+                        @(CurrentSortColumn == column.Property ? (SortAscending ? " ↑" : " ↓") : "")
+                    </th>
+                }
+                <th>@(IsArabic ? "الإجراءات" : "Actions")</th>
+            </tr>
+            <tr>
+                @foreach (var column in Columns)
+                {
+                    <th>
+                        <input class="form-control" type="text"
+                               @bind="column.SearchValue"
+                               @bind:event="oninput" />
+                    </th>
+                }
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in PagedItems)
+            {
+                <tr>
+                    @foreach (var column in Columns)
+                    {
+                        @* <td>@column.CellTemplate(item)</td> *@
+                        <td>@column.RenderCell(item)</td>
+
+                    }
+                    <td>
+                        <button class="btn btn-sm btn-info me-2" @onclick="() => OnView.InvokeAsync(item)">👁</button>
+                        <button class="btn btn-sm btn-warning me-2" @onclick="() => OnEdit.InvokeAsync(item)">✏</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="row w-100 justify-content-between">
+        <div class="col-auto text-start">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(CurrentPage - 1)">
+                            @(IsArabic ? "السابق" : "Previous")
+                        </button>
+                    </li>
+                    @for (int tablePage = 1; tablePage <= TotalPages; tablePage++)
+                    {
+                        var indexPage = tablePage;
+                        <li class="page-item @(CurrentPage == indexPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(indexPage)">
+                                @indexPage
+                            </button>
+                        </li>
+                    }
+                    <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(CurrentPage + 1)">
+                            @(IsArabic ? "التالي" : "Next")
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="col-auto text-end">
+            <div class="mb-3 d-flex align-items-center">
+                <label for="pageSizeSelector" class="me-2">@(IsArabic ? "عدد العناصر:" : "Items per page:")</label>
+                <select id="pageSizeSelector" class="form-select w-auto" @onchange="OnPageSizeChanged">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size" selected="@(size == PageSize)">
+                            @size
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<TItem> Items { get; set; } = new();
+    [Parameter] public List<ColumnDefinition<TItem>> Columns { get; set; } = new();
+    [Parameter] public EventCallback<TItem> OnView { get; set; }
+    [Parameter] public EventCallback<TItem> OnEdit { get; set; }
+    [Parameter] public string Language { get; set; } = "En";
+
+    bool IsArabic => Language == "Ar";
+    string Direction => IsArabic ? "rtl" : "ltr";
+
+    int CurrentPage = 1;
+    int PageSize = 10;
+    int[] PageSizeOptions = new[] { 5, 10, 20, 50 };
+    string? CurrentSortColumn;
+    bool SortAscending = true;
+
+    IEnumerable<TItem> FilteredItems => Items.Where(item =>
+        Columns.All(c =>
+            string.IsNullOrEmpty(c.SearchValue) ||
+            (c.GetValue(item)?.ToString()?.Contains(c.SearchValue, StringComparison.OrdinalIgnoreCase) ?? false)
+        )
+    );
+
+    IEnumerable<TItem> SortedItems =>
+        string.IsNullOrEmpty(CurrentSortColumn)
+            ? FilteredItems
+            : (SortAscending
+                ? FilteredItems.OrderBy(i => Columns.First(c => c.Property == CurrentSortColumn).GetValue(i))
+                : FilteredItems.OrderByDescending(i => Columns.First(c => c.Property == CurrentSortColumn).GetValue(i)));
+
+    IEnumerable<TItem> PagedItems => SortedItems.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+
+    int TotalPages => (int)Math.Ceiling(SortedItems.Count() / (double)PageSize);
+
+    void Sort(string property)
+    {
+        if (CurrentSortColumn == property)
+            SortAscending = !SortAscending;
+        else
+        {
+            CurrentSortColumn = property;
+            SortAscending = true;
+        }
+    }
+
+    void GoToPage(int page)
+    {
+        if (page < 1 || page > TotalPages) return;
+        CurrentPage = page;
+    }
+
+    void OnPageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            PageSize = newSize;
+            CurrentPage = 1;
+        }
+    }
+
+
+    public class ColumnDefinition<T>
+    {
+        public string Title { get; set; } = "";
+        public string Property { get; set; } = "";
+        public string? SearchValue { get; set; }
+        public Func<T, object?> GetValue { get; set; } = _ => null!;
+        public Func<T, RenderFragment>? CellTemplate { get; set; }
+
+        public RenderFragment RenderCell(T item) =>
+            CellTemplate != null ? CellTemplate(item) : builder => builder.AddContent(0, GetValue(item));
+    }
+    
+    
+
+
+}
+
+

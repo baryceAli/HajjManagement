@@ -50,7 +50,9 @@
                             <td>@item.AdministrativeDivisionId</td>
                             <td>@item.Name</td>
                             <td>@item.Name</td>
-                            <td>@(countries.First(c => c.CountryId == item.CountryId).Name)</td> <!-- Replace with item.Country?.Name if eager loaded -->
+                            <td>@(countries.First(c => c.CountryId == item.CountryId).Name) 
+                                <img height="20" width="30" src="@(countries.First(c => c.CountryId == item.CountryId).FlagUrl)" />
+                            </td> <!-- Replace with item.Country?.Name if eager loaded -->
                             @* <td>@item.ParentId</td> *@
                             <td>@((item.ParentId != null && item.ParentId > 0) ? administrativeDivisionTypes.First(ad => ad.AdministrativeDivisionId == item.ParentId).Name:"لا يوجد")</td>
                             <td>

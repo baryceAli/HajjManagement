@@ -1,8 +1,241 @@
-﻿@page "/AdministrativeDivision/Details/{Id}"
-<h3>AdministrativeDivisionTypeDetails</h3>
+﻿@* @page "/AdministrativeDivision/Details/{Id}" *@
+@page "/AdministrativeDivision/Details/{Id:int?}"
+
+
+@using CoreBusiness
+@* @using HajjManagement.Shared.Pages.Common *@
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<AdministrativeDivision> DivisionService
+@inject IGenericAPIService<User> UserService
+@inject IGenericAPIService<Guest> GuestService
+@inject IGenericAPIService<Country> CountryService
+@inject NavigationManager NavigationManager
+
+<div class="m-0 p-0" dir="rtl">
+
+<h3>التقسيم الإداري</h3>
+</div>
+
+@if (division == null)
+{
+    <p>جاري التحميل...</p>
+}
+else
+{
+    <div class="card p-3" dir="rtl">
+        <h4>@division.Name</h4>
+        <p><b>الرقم:</b> @division.AdministrativeDivisionId</p>
+        <p><b>الدولة:</b> @countries.First(c => c.CountryId == division.CountryId).Name <img height="20" width="30" src="@(countries.First(c => c.CountryId == division.CountryId).FlagUrl)" /></p>
+
+        @if (parentDivision != null)
+        {
+            <p>
+                <b>المستوى الأعلى:</b>
+                <a href="javascript:void(0)" @onclick="() => NavigateToDivision(parentDivision.AdministrativeDivisionId)">
+                    @parentDivision.Name
+                </a>
+            </p>
+        }
+
+        <h5>المستخدمين</h5>
+        @if (users.Any())
+        {
+            <PagedTable TItem="User"
+                        Items="users"
+                        Language="@language"
+                        Columns="@UserColumns"
+                        OnView="ViewUser"
+                        OnEdit="EditUser" />
+        }
+        else
+        {
+            <p>لا يوجد مستخدمين.</p>
+        }
+
+        <h5>الضيوف</h5>
+        
+        @if (guests.Any())
+        {
+            
+            <PagedTable TItem="Guest"
+                        Items="guests"
+                        Language="@language"
+                        Columns="@GuestColumns"
+                        OnView="ViewGuest"
+                        OnEdit="EditGuest" />
+        }
+        else
+        {
+            <p>لا يوجد ضيوف.</p>
+        }
+
+        <h5>التقسيمات الفرعية</h5>
+        @if (children.Any())
+        {
+            <PagedTable TItem="AdministrativeDivision"
+                        Items="children"
+                        Language="@language"
+                        Columns="@AdministrativeDivisionColumns"
+                        OnView="ViewAdministrativeDivision"
+                        OnEdit="EditAdministrativeDivision" />
+        }
+        else
+        {
+            <p>لا يوجد تقسيمات فرعية.</p>
+        }
+    </div>
+}
 
 @code {
-    [Parameter]
-    public string? Id { get; set; }
+    [Parameter] public int Id { get; set; }
+    private string language = "Ar";
+    private AdministrativeDivision? division;
+    private AdministrativeDivision? parentDivision;
+    private List<AdministrativeDivision> children = new();
+    private IEnumerable<Country> countries = new List<Country>();
+    private List<User> users = new();
+    private List<Guest> guests = new();
+    protected override async Task OnParametersSetAsync()
+    {
+        // Load main division
+        division = await DivisionService.GetByIdAsync(Id);
+
+        // Load parent
+        if (division.ParentId.HasValue && division.ParentId.Value > 0)
+        {
+            parentDivision = await DivisionService.GetByIdAsync(division.ParentId.Value);
+        }
+
+        countries = await CountryService.GetAllAsync();
+        // Load children
+        var allDivisions = await DivisionService.GetAllAsync();
+        children = allDivisions.Where(d => d.ParentId == division.AdministrativeDivisionId).ToList();
+
+        // Load related users & guests (if your API supports filtering)
+        var allUsers = await UserService.GetAllAsync();
+        users = allUsers.Where(u => u.AdministrativeDivisionId == division.AdministrativeDivisionId).ToList();
+
+        var allGuests = await GuestService.GetAllAsync();
+        guests = allGuests.Where(g => g.AdministrativeDivisionId == division.AdministrativeDivisionId).ToList();
+    }
+
+    private void NavigateToDivision(int id)
+    {
+        NavigationManager.NavigateTo($"/AdministrativeDivision/Details/{id}");
+    }
+
+
+    /// <summary>
+    /// PageTable Parameters for User
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<User>.ColumnDefinition<User>> UserColumns => GetUserColumns();
+    private List<PagedTable<User>.ColumnDefinition<User>> GetUserColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = u => u.Id },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = u => u.FirstName + " " + u.LastName },
+            new() { Title = IsArabic ? "البريد" : "Email", Property = "Email", GetValue = u => u.Email }
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewUser(User user)
+    {
+        Console.WriteLine($"Viewing user: {user.UserName}");
+        // You can navigate to a user details page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    private Task EditUser(User user)
+    {
+        Console.WriteLine($"Editing user: {user.UserName}");
+        // You can navigate to a user edit page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for User
+    /// </summary>
+    /// <returns></returns>
+
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+
+    private List<PagedTable<Guest>.ColumnDefinition<Guest>> GuestColumns => GetGuestColumns();
+    private List<PagedTable<Guest>.ColumnDefinition<Guest>> GetGuestColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = g => g.GuestId },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "GivenName", GetValue = g => g.GivenName + " " + g.LastName },
+            new() { Title = IsArabic ? "المشرف" : "Email", Property = "SupervisorId ", GetValue = g => g.SupervisorId },
+            new() { Title = IsArabic ? "الحقيبة" : "Bag", Property = "BagId", GetValue = g => g.BagId},
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewGuest(Guest guest)
+    {
+        Console.WriteLine($"Viewing user: {guest.GivenName}");
+        // You can navigate to a user details page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    private Task EditGuest(Guest guest)
+    {
+        Console.WriteLine($"Editing user: {guest.GivenName}");
+        // You can navigate to a user edit page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+
+    /// <summary>
+    /// PageTable Parameters for AdministrativeDivision
+    /// </summary>
+    /// <returns></returns>
+    ///
+
+    private List<PagedTable<AdministrativeDivision>.ColumnDefinition<AdministrativeDivision>> AdministrativeDivisionColumns => GetAdministrativeDivisionColumns();
+    private List<PagedTable<AdministrativeDivision>.ColumnDefinition<AdministrativeDivision>> GetAdministrativeDivisionColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "AdministrativeDivisionId", GetValue = g => g.AdministrativeDivisionId },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = g => g.Name },
+            new() { Title = IsArabic ? "البلد" : "Country", Property = "CountryId", GetValue = g =>countries.First(c=>c.CountryId== g.CountryId).Name},
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewAdministrativeDivision(AdministrativeDivision administrativeDivision)
+    {
+        NavigationManager.NavigateTo($"AdministrativeDivision/Details/{administrativeDivision.AdministrativeDivisionId}");
+        Console.WriteLine($"Viewing user: {administrativeDivision.Name}");
+        // You can navigate to a user details page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    private Task EditAdministrativeDivision(AdministrativeDivision guest)
+    {
+        Console.WriteLine($"Editing user: {guest.Name}");
+        // You can navigate to a user edit page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for AdministrativeDivision
+    /// </summary>
+    /// <returns></returns>
 
 }
