@@ -23,8 +23,10 @@ namespace HajjManagement.Shared.Services
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
+            //var ss = GlobalData.Token;
             //_httpClient.DefaultRequestHeaders.Accept.Clear();
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
+            //_httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
+            SetAuthHeader();
             return await _httpClient.GetFromJsonAsync<IEnumerable<T>>($"") ?? new List<T>();
         }
 
@@ -91,5 +93,12 @@ namespace HajjManagement.Shared.Services
             var response = await _httpClient.DeleteAsync($"{id}");
             return response.IsSuccessStatusCode;
         }
+        private void SetAuthHeader()
+        {
+            _httpClient.DefaultRequestHeaders.Remove("Authorization");
+            if (!string.IsNullOrWhiteSpace(GlobalData.Token))
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GlobalData.Token}");
+        }
+
     }
 }

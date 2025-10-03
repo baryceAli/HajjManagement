@@ -1,8 +1,10 @@
 ﻿@page "/AdministrativeDivision/Form"
+@page "/AdministrativeDivision/Form/{Id:int?}"
+
 <h3>AdministrativeDivisionForm</h3>
 @using CoreBusiness
 @using HajjManagement.Shared.Services
-@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionTypeService
+@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
 @inject IGenericAPIService<Country> CountryService
 @inject NavigationManager NavigationManager
 
@@ -11,37 +13,41 @@
         <h3>@title</h3>
     </div>
     <div class="card-body">
-        <EditForm Model="administrativeDivisionType" OnValidSubmit="HandleValidSubmit">
+        <EditForm Model="administrativeDivision" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div class="mb-3">
                 <label for="NameAr" class="form-label">الاسم بالعربية</label>
-                <InputText id="NameAr" class="form-control" @bind-Value="administrativeDivisionType.Name" />
+                <InputText id="NameAr" class="form-control" @bind-Value="administrativeDivision.Name" />
             </div>
 
             <div class="mb-3">
                 <label for="NameEn" class="form-label">الاسم بالإنجليزية</label>
-                <InputText id="NameEn" class="form-control" @bind-Value="administrativeDivisionType.Name" />
+                <InputText id="NameEn" class="form-control" @bind-Value="administrativeDivision.Name" />
             </div>
 
             <div class="mb-3">
-                <label for="Level" class="form-label">المستوى</label>
-                <InputNumber id="Level" class="form-control" @bind-Value="administrativeDivisionType.CountryId" />
+                <label for="Level" class="form-label">المستوى الاداري الاعلى</label>
+                @if (AdministrativeDivisionList != null && AdministrativeDivisionList.Any())
+                {
+
+                    <select id="division-select" class="form-control" @bind="administrativeDivision.ParentId">
+                        @* <option value="">Select a country...</option> *@
+                        @foreach (var admDiv in AdministrativeDivisionList)
+                        {
+                            <option value="@admDiv.AdministrativeDivisionId">@admDiv.Name</option>
+                        }
+                    </select>
+                }
             </div>
 
             <div class="mb-3">
                 <label for="CountryId" class="form-label">البلد</label>
-                @* <InputSelect class="form-control" @bind-Value="administrativeDivisionType.CountryId">
-                    @foreach (var country in countries)
-                    {
-                        <option value="@country.CountryId">@country.Name</option>
-                    }
-                </InputSelect> *@
                 @if (countries != null && countries.Any())
                 {
-
-                    <select id="country-select" class="form-control" @bind="administrativeDivisionType.CountryId">
+                    
+                    <select id="country-select" class="form-control" disabled="@(( Id>0|| administrativeDivision.ParentId!=null || administrativeDivision.ParentId>0)?true:false)" @bind="administrativeDivision.CountryId">
                         <option value="">Select a country...</option>
                         @foreach (var country in countries)
                         {
@@ -61,52 +67,68 @@
     [Parameter]
     public int? Id { get; set; }
     private string title = "إضافة مستوى تقسيم إداري";
-    private AdministrativeDivision? administrativeDivisionType = new(); // Field to hold the current AdministrativeDivisionType
-
+    private AdministrativeDivision? administrativeDivision = new(); // Field to hold the current AdministrativeDivisionType
+    private AdministrativeDivision? parentAdministrativeDivision = new();
     private List<Country> countries = new();
-
+    private List<AdministrativeDivision> AdministrativeDivisionList = new();
     [Inject] IJSRuntime JS { get; set; }
 
 
     override protected async Task OnInitializedAsync()
     {
         countries = (await CountryService.GetAllAsync()).ToList();
+        
+        
+        AdministrativeDivisionList = (await AdministrativeDivisionService.GetAllAsync()).ToList(); // Fetching administrative divisions
+        AdministrativeDivisionList.Insert(0, new AdministrativeDivision { AdministrativeDivisionId = 0, Name = "لا يوجد" });
         if (Id.HasValue && Id.Value > 0)
         {
             title = "تعديل مستوى تقسيم إداري";
-            administrativeDivisionType = await AdministrativeDivisionTypeService.GetByIdAsync(Id.Value);
+            // administrativeDivision = await AdministrativeDivisionService.GetByIdAsync(Id.Value);
+            administrativeDivision = AdministrativeDivisionList.FirstOrDefault(ad=>ad.AdministrativeDivisionId==Id);
             // administrativeDivisionType.include(c => c.Country);
         }
+        parentAdministrativeDivision = AdministrativeDivisionList.FirstOrDefault(ad => ad.AdministrativeDivisionId == administrativeDivision.ParentId);
+        
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+            // await JS.InvokeVoidAsync("initializeTomSelect", "#division-select");
+
         }
     }
     private async Task HandleValidSubmit()
     {
 
-        var country = countries.FirstOrDefault(c => c.CountryId == administrativeDivisionType.CountryId);
+        var country = countries.FirstOrDefault(c => c.CountryId == administrativeDivision.CountryId);
 
+        // var parentDivision = AdministrativeDivisionList.FirstOrDefault(pd => pd.AdministrativeDivisionId == administrativeDivision.ParentId);
 
-        if (administrativeDivisionType!.AdministrativeDivisionId == 0)
+        if (administrativeDivision!.AdministrativeDivisionId == 0)
         {
-            administrativeDivisionType.CreatedAt = DateTime.UtcNow;
-            administrativeDivisionType.UpdatedAt = DateTime.UtcNow;
-            await AdministrativeDivisionTypeService.AddAsync(administrativeDivisionType);
+            administrativeDivision.CreatedAt = DateTime.UtcNow;
+            administrativeDivision.UpdatedAt = DateTime.UtcNow;
+            if(administrativeDivision.ParentId!=null || administrativeDivision.ParentId>0)
+            {
+                var parentDivision= AdministrativeDivisionList.First(pd => pd.AdministrativeDivisionId == administrativeDivision.ParentId);
+                administrativeDivision.CountryId = countries.First(c=>c.CountryId==parentDivision.CountryId).CountryId;
+            }
+            await AdministrativeDivisionService.AddAsync(administrativeDivision);
         }
         else
         {
-            administrativeDivisionType.UpdatedAt = DateTime.UtcNow;
-            await AdministrativeDivisionTypeService.UpdateAsync(administrativeDivisionType);
+            //administrativeDivision.ParentId = administrativeDivision.ParentId; // Ensure ParentId is set correctly
+            administrativeDivision.UpdatedAt = DateTime.UtcNow;
+            await AdministrativeDivisionService.UpdateAsync(administrativeDivision);
         }
 
-        NavigationManager.NavigateTo("/AdministrativeDivisionType/List");
+        NavigationManager.NavigateTo("/AdministrativeDivision/List");
     }
     private void onCancel()
     {
-        NavigationManager.NavigateTo("/AdministrativeDivisionType/List");
+        NavigationManager.NavigateTo("/AdministrativeDivision/List");
     }
 }

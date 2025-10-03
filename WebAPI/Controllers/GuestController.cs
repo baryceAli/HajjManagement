@@ -1,12 +1,17 @@
-﻿using CoreBusiness;
+﻿using Asp.Versioning;
+using CoreBusiness;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")] // v1
+    [ApiVersion("2.0")] // v2 (future changes)
+    
     public class GuestController : ControllerBase
     {
         private readonly IGuestService service;

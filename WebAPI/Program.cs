@@ -1,4 +1,6 @@
-
+﻿
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using CoreBusiness;
 using Infrastructure;
 using Infrastructure.Interfaces;
@@ -7,7 +9,10 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Security.Claims;
 using System.Text;
 using WebAPI.Util;
 
@@ -39,7 +44,10 @@ namespace WebAPI
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
                     ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                    // ✅ Map the JWT role claim type to the one ASP.NET expects
+                    RoleClaimType =ClaimTypes.Role// "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
                 };
             });
 
@@ -47,6 +55,69 @@ namespace WebAPI
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+
+            // ✅ API Versioning
+            // ✅ Versioned API Explorer (needed for Swagger)
+            builder.Services
+                .AddApiVersioning(options =>
+                {
+                    // Default API Version if not specified
+                    options.DefaultApiVersion = new ApiVersion(1, 0);
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+
+                    // Report supported versions in response headers
+                    options.ReportApiVersions = true;
+
+                    // Use URL segment versioning by default (e.g. /api/v1/...)
+                    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+                })
+                .AddApiExplorer(options =>
+                {
+                    options.GroupNameFormat = "'v'VVV"; // e.g. v1, v2
+                    options.SubstituteApiVersionInUrl = true;
+                });
+
+            // Swagger
+            builder.Services.AddEndpointsApiExplorer();
+            //builder.Services.AddSwaggerGen();
+
+            // Register ConfigureSwaggerOptions for multiple versions
+            builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
+            // Swagger
+            var swaggerEnabled = builder.Configuration.GetValue<bool>("Swagger:Enabled");
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+
+                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "Enter 'Bearer' followed by your JWT token."
+                });
+
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                {
+                    {
+                        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                        {
+                            Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                            {
+                                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
+            });
+
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
@@ -64,9 +135,9 @@ namespace WebAPI
             //    .AddDefaultTokenProviders();
 
 
-            builder.Services.AddOpenApi();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            //builder.Services.AddOpenApi();
+            
+            //builder.Services.AddSwaggerGen();
 
             //Application Services
             builder.Services.AddScoped<IAdministrativeDivisionService, AdministrativeDivisionService>();
@@ -95,22 +166,31 @@ namespace WebAPI
             }
 
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+
+            var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+            //var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+            // ✅ Swagger UI per API version
+            swaggerEnabled = true;
+            if (swaggerEnabled)
             {
-                app.MapOpenApi();
-
                 app.UseSwagger();
-                app.UseSwaggerUI();
 
+                // Get version info from the built DI container
+
+                app.UseSwaggerUI(options =>
+                {
+                    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerEndpoint(
+                            $"/swagger/{description.GroupName}/swagger.json",
+                            description.GroupName.ToUpperInvariant()
+                        );
+                    }
+                });
             }
-
             app.UseHttpsRedirection();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
+	<!--Token-->
+	<!--ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnpkV0lpT2lKTllXbHVVM1Z3WlhKQlpHMXBiaUlzSW1wMGFTSTZJakV4T1RkbU56TmxMV1kyTTJNdE5HRXhNUzA0WW1RNExUaGlORGN6WldOallUVTRaQ0lzSW1oMGRIQTZMeTl6WTJobGJXRnpMbmh0YkhOdllYQXViM0puTDNkekx6SXdNRFV2TURVdmFXUmxiblJwZEhrdlkyeGhhVzF6TDI1aGJXVnBaR1Z1ZEdsbWFXVnlJam9pTVNJc0ltaDBkSEE2THk5elkyaGxiV0Z6TG5odGJITnZZWEF1YjNKbkwzZHpMekl3TURVdk1EVXZhV1JsYm5ScGRIa3ZZMnhoYVcxekwyNWhiV1VpT2lKQ1lYTm9hWElnVFc5b1lXMWxaQ0JCYkdraUxDSm9kSFJ3T2k4dmMyTm9aVzFoY3k1NGJXeHpiMkZ3TG05eVp5OTNjeTh5TURBMUx6QTFMMmxrWlc1MGFYUjVMMk5zWVdsdGN5OWxiV0ZwYkdGa1pISmxjM01pT2lJaUxDSm9kSFJ3T2k4dmMyTm9aVzFoY3k1dGFXTnliM052Wm5RdVkyOXRMM2R6THpJd01EZ3ZNRFl2YVdSbGJuUnBkSGt2WTJ4aGFXMXpMM0p2YkdVaU9sc2lUV0ZwYmxOMWNHVnlRV1J0YVc0aUxDSk5ZV2x1UVdSdGFXNGlMQ0pOWVdsdVJHRjBZVVZ1ZEhKNUlpd2lRMjl0Y0dGdWVWTjFjR1Z5UVdSdGFXNGlMQ0pEYjIxd1lXNTVRV1J0YVc0aUxDSkRiMjF3WVc1NVJHRjBZVVZ1ZEhKNUlpd2lVM1Z3WlhKQlpHMXBiaUlzSWtGa2JXbHVJaXdpUkdGMFlVVnVkSEo1SWl3aVUzVndaWEoyYVhOdmNpSmRMQ0psZUhBaU9qRTNOVGt6TnpBME56WXNJbWx6Y3lJNklraGhhbXBOWVc1aFoyVnRaVzUwSWl3aVlYVmtJam9pU0dGcWFrMWhibUZuWlcxbGJuUlZjMlZ5Y3lKOS5UNkNMU3hfS2g3RU56dXQ5RUROc3d0Wk9uaHZ0WDExQWk4eXVmemE0SUZn-->
+	
+	<PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
