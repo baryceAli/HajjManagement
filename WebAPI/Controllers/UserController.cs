@@ -1,4 +1,5 @@
-﻿using CoreBusiness;
+﻿using Asp.Versioning;
+using CoreBusiness;
 using CoreBusiness.Dtos;
 using Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,8 +14,13 @@ using WebAPI.Util;
 
 namespace WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     //[Microsoft.AspNetCore.Mvc.ApiController]
+    [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")] // v1
+    [ApiVersion("2.0")] // v2 (future changes)
+
     public class UserController : ControllerBase
     {
         private readonly IUserService service;

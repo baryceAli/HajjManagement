@@ -29,7 +29,7 @@
                         <th @onclick="SortByNameAr" style="cursor:pointer">@(currentSortColumn == "NameAr" ? (sortAscending ? "↑" : "↓") : "") اسم المستوى (عربي) </th>
                         <th @onclick="SortByNameEn" style="cursor:pointer">@(currentSortColumn == "NameEn" ? (sortAscending ? "↑" : "↓") : "") اسم المستوى (إنجليزي)</th>
                         <th @onclick="SortByCountry" style="cursor:pointer">@(currentSortColumn == "Country" ? (sortAscending ? "↑" : "↓") : "") البلد</th>
-                        <th @onclick="SortByLevel" style="cursor:pointer">@(currentSortColumn == "Level" ? (sortAscending ? "↑" : "↓") : "") المستوى</th>
+                        <th @onclick="SortByLevel" style="cursor:pointer">@(currentSortColumn == "Level" ? (sortAscending ? "↑" : "↓") : "") المستوى الاداري الاعلى</th>
                         <th>الإجراءات</th>
                     </tr>
                     <tr>
@@ -51,7 +51,8 @@
                             <td>@item.Name</td>
                             <td>@item.Name</td>
                             <td>@(countries.First(c => c.CountryId == item.CountryId).Name)</td> <!-- Replace with item.Country?.Name if eager loaded -->
-                            <td>@item.ParentId</td>
+                            @* <td>@item.ParentId</td> *@
+                            <td>@((item.ParentId != null && item.ParentId > 0) ? administrativeDivisionTypes.First(ad => ad.AdministrativeDivisionId == item.ParentId).Name:"لا يوجد")</td>
                             <td>
                                 <button class="btn btn-sm btn-info me-2" @onclick="() => ViewDetails(item.AdministrativeDivisionId)"><i class="bi bi-list-columns"></i></button>
                                 <button class="btn btn-sm btn-warning me-2" @onclick="() => Edit(item.AdministrativeDivisionId)"><i class="bi bi-pencil-square"></i></button>
@@ -146,7 +147,8 @@
             (string.IsNullOrWhiteSpace(searchNameAr) || item.Name?.Contains(searchNameAr, StringComparison.OrdinalIgnoreCase) == true) &&
             (string.IsNullOrWhiteSpace(searchNameEn) || item.Name?.Contains(searchNameEn, StringComparison.OrdinalIgnoreCase) == true) &&
             (string.IsNullOrWhiteSpace(searchCountry) || countries.FirstOrDefault(c => c.CountryId == item?.CountryId)?.Name?.Contains(searchCountry, StringComparison.OrdinalIgnoreCase) == true) &&
-            (string.IsNullOrWhiteSpace(searchLevel) || item.ParentId.ToString().Contains(searchLevel))
+            (string.IsNullOrWhiteSpace(searchLevel) || administrativeDivisionTypes.FirstOrDefault(ad => ad.AdministrativeDivisionId== item?.ParentId)?.Name?.Contains(searchLevel, StringComparison.OrdinalIgnoreCase) == true)
+            // (string.IsNullOrWhiteSpace(searchLevel) || item.ParentId.ToString().Contains(searchLevel))
         )
         .OrderBy(item => 0) // dummy so we can chain
         .ThenBy(item => currentSortColumn == "Id" && sortAscending ? item.AdministrativeDivisionId : 0)
@@ -157,8 +159,8 @@
         .ThenByDescending(item => currentSortColumn == "NameEn" && !sortAscending ? item.Name: null)
         .ThenBy(item => currentSortColumn == "Country" && sortAscending ? countries.FirstOrDefault(c => c.CountryId == item.CountryId)?.Name : null)
         .ThenByDescending(item => currentSortColumn == "Country" && !sortAscending ? countries.FirstOrDefault(c => c.CountryId == item.CountryId)?.Name : null)
-        .ThenBy(item => currentSortColumn == "Level" && sortAscending ? item.ParentId.ToString() : null)
-        .ThenByDescending(item => currentSortColumn == "Level" && !sortAscending ? item.ParentId.ToString() : null);
+        .ThenBy(item => currentSortColumn == "Level" && sortAscending ? administrativeDivisionTypes.FirstOrDefault(ad => ad.AdministrativeDivisionId == item.ParentId)?.Name : null)
+        .ThenByDescending(item => currentSortColumn == "Level" && !sortAscending ? administrativeDivisionTypes.FirstOrDefault(ad => ad.AdministrativeDivisionId == item.ParentId)?.Name : null);
     // Method to fetch data from the API
     protected override async Task OnInitializedAsync()
     {
@@ -175,17 +177,17 @@
     }
     private void CreateNew()
     {
-        NavigationManager.NavigateTo("/AdministrativeDivisionType/Form");
+        NavigationManager.NavigateTo("/AdministrativeDivision/Form");
     }
 
     private void ViewDetails(int id)
     {
-        NavigationManager.NavigateTo($"/AdministrativeDivisionType/Details/{id}");
+        NavigationManager.NavigateTo($"/AdministrativeDivision/Details/{id}");
     }
 
     private void Edit(int id)
     {
-        NavigationManager.NavigateTo($"/AdministrativeDivisionType/Form/{id}");
+        NavigationManager.NavigateTo($"/AdministrativeDivision/Form/{id}");
     }
     private void SortBy(string columnName)
     {
