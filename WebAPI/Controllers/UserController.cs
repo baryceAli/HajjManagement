@@ -51,6 +51,13 @@ namespace WebAPI.Controllers
             // Constructor logic can be added here if needed
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            var users = await service.GetAllAsync();
+            return Ok(users);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {

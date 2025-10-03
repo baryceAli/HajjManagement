@@ -1,7 +1,80 @@
 ﻿@page "/Guest/List"
+@using CoreBusiness
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<Guest> GuestService
+@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
+@inject NavigationManager NavigationManager
 
-<h3>GuestList</h3>
+<div class="m-0 p-0" dir="rtl">
+    <h3>الزوار</h3>
+    <PagedTable TItem="Guest"
+                Items="guests"
+                Language="@language"
+                Columns="@GuestColumns"
+                OnView="ViewGuest"
+                OnEdit="EditGuest" />
+</div>
 
 @code {
+    private List<Guest> guests;
+    private IEnumerable<AdministrativeDivision> divisions;
+
+    private string language = "Ar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        guests = (await GuestService.GetAllAsync()).ToList();
+        divisions = await AdministrativeDivisionService.GetAllAsync();
+        // Additional logic to handle guests data can be added here
+        if (guests == null || !guests.Any())
+        {
+            // Logic to handle situation when no guests are available
+            // For example, set default values or notify the user
+        }
+        else
+        {
+            // Additional processing of guests can be added here
+        }
+    }
+
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<Guest>.ColumnDefinition<Guest>> GuestColumns => GetGuestColumns();
+    private List<PagedTable<Guest>.ColumnDefinition<Guest>> GetGuestColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = g => g.GuestId },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "GivenName", GetValue = g => g.GivenName + " " + g.LastName },
+            new() { Title = IsArabic ? "المشرف" : "Email", Property = "SupervisorId ", GetValue = g => g.SupervisorId },
+            new() { Title = IsArabic ? "الحقيبة" : "Bag", Property = "BagId", GetValue = g => g.BagId},
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewGuest(Guest guest)
+    {
+        Console.WriteLine($"Viewing user: {guest.GivenName}");
+        // You can navigate to a user details page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    private Task EditGuest(Guest guest)
+    {
+        Console.WriteLine($"Editing user: {guest.GivenName}");
+        // You can navigate to a user edit page or open a modal here
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
 
 }

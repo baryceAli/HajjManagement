@@ -19,9 +19,7 @@ namespace CoreBusiness
         public string FlagUrl { get; set; } // URL to the country's flag image
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        //public ICollection<Guest>? Guests { get; set; }
-        //public ICollection<AdministrativeDivision>? AdministrativeDivisions { get; set; }
-        //public ICollection<AdministrativeDivisionType>? AdministrativeDivisionTypes { get; set; }
+        
 
 
     }
