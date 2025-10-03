@@ -53,6 +53,7 @@
         {
             new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = g => g.GuestId },
             new() { Title = IsArabic ? "الاسم" : "Name", Property = "GivenName", GetValue = g => g.GivenName + " " + g.LastName },
+            new() { Title = IsArabic ? "العنوان" : "Address", Property = "AdministrativeDivisionId", GetValue = g => g.AdministrativeDivisionId },
             new() { Title = IsArabic ? "المشرف" : "Email", Property = "SupervisorId ", GetValue = g => g.SupervisorId },
             new() { Title = IsArabic ? "الحقيبة" : "Bag", Property = "BagId", GetValue = g => g.BagId},
         };
