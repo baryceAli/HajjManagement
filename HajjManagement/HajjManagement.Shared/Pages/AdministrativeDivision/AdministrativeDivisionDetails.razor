@@ -54,7 +54,12 @@ else
         }
 
         <h5>الضيوف</h5>
-        
+        <PagedTable TItem="Guest"
+                    Items="guests"
+                    Language="@language"
+                    Columns="@GuestColumns"
+                    OnView="ViewGuest"
+                    OnEdit="EditGuest" />
         @if (guests.Any())
         {
             
