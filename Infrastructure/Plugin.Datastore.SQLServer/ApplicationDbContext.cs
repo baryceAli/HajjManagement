@@ -19,6 +19,7 @@ namespace Infrastructure.Plugin.Datastore.SQLServer
         }
 
         public DbSet<AdministrativeDivision> AdministrativeDivisions { get; set; }
+        public DbSet<CountryStructure> CountryStructures { get; set; }
         public DbSet<Bag> Bags { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Country> Countries { get; set; }

@@ -22,10 +22,10 @@ namespace HajjManagement
                 client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/AdministrativeDivision/");
             });
 
-            //builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivisionType>, GenericAPIService<AdministrativeDivisionType>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivisionType/");
-            //});
+            builder.Services.AddHttpClient<IGenericAPIService<CountryStructure>, GenericAPIService<CountryStructure>>(client =>
+            {
+                client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/CountryStructure/");
+            });
 
 
             builder.Services.AddHttpClient<IGenericAPIService<Bag>, GenericAPIService<Bag>>(client =>

@@ -1,0 +1,131 @@
+﻿@page "/CountryStructure/List"
+@using CoreBusiness
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<CountryStructure> CountryStructureService
+
+@inject IGenericAPIService<Country> CountryService
+@* @inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService *@
+@inject NavigationManager NavigationManager
+
+<div class="m-0 p-0" dir="rtl">
+    <div class="card shadow" dir="rtl">
+        <div class="card-header">
+            <h3 class="mb-4">الزوار</h3>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+            @if (countryStructureList == null)
+            {
+                <p>جاري التحميل...</p>
+            }
+
+            else
+            {
+                
+            <div class="mb-3">
+                <label for="CountryId" class="form-label">البلد</label>
+                @if (countries != null && countries.Any())
+                {
+                    
+                    <select id="country-select" class="form-control" @onchange="onCountryChanged">
+                        <option value="">Select a country...</option>
+                        @foreach (var country in countries)
+                        {
+                            <option value="@country.CountryId">@country.Name</option>
+                        }
+                    </select>
+                }
+            </div>
+            
+            <PagedTable TItem="CountryStructure"
+                            Items="countryStructureList"
+                            Language="@language"
+                            Columns="@GuestColumns"
+                            OnView="ViewCountryStructure"
+                            OnEdit="EditCountryStructure" />
+            }
+
+
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private List<CountryStructure> countryStructureList;
+    private List<CountryStructure> allCountryStructureList;
+    private IEnumerable<Country> countries;
+    private Country? selectedCountry;
+    private string language = "Ar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        allCountryStructureList= (await CountryStructureService.GetAllAsync()).ToList();
+        countryStructureList = allCountryStructureList;
+        countries = await CountryService.GetAllAsync(); 
+
+    }
+
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/CountryStructure/Form");
+    }
+    private async Task onCountryChanged(ChangeEventArgs e)
+    {
+        if(int.TryParse(e.Value?.ToString(), out int countryId))
+        {
+            if(countryId == 0)
+            {
+                countryStructureList = allCountryStructureList;
+            }
+            else
+            {
+                countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == countryId).ToList();
+            }
+        }
+        else
+        {
+            countryStructureList = allCountryStructureList;
+        }
+        StateHasChanged();
+    }
+
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<CountryStructure>.ColumnDefinition<CountryStructure>> GuestColumns => GetCountryStructureColumns();
+    private List<PagedTable<CountryStructure>.ColumnDefinition<CountryStructure>> GetCountryStructureColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "CountryStructureId", GetValue = cs => cs.CountryStructureId},
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = cs => cs.Name },
+            new() { Title = IsArabic ? "الهيكل الاعلى" : "Higher Structure", Property = "ParentCountryStructureId", GetValue = cs => cs.ParentCountryStructureId },
+            new() { Title = IsArabic ? "الدولة" : "Country", Property = "CountryId", GetValue = cs => cs.CountryId},
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewCountryStructure(CountryStructure countryStructure)
+    {
+        NavigationManager.NavigateTo($"/CountryStructure/Details/{countryStructure.CountryStructureId}");
+        return Task.CompletedTask;
+    }
+
+    private Task EditCountryStructure(CountryStructure countryStructure)
+    {
+        NavigationManager.NavigateTo($"/CountryStructure/Form/{countryStructure.CountryStructureId}");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+
+}
