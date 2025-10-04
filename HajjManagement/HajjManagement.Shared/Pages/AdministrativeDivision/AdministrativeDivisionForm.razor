@@ -52,7 +52,7 @@
                 {
                     @* <option value="">اختر هيكل إداري...</option> *@
 
-                    <select id="countrystructure-select"  class="form-control">
+                    <select id="countrystructure-select" @onchange="OnCountryStructureChange" class="form-control">
 
                         @foreach (var cs in countryStructureList)
                         {
@@ -71,7 +71,7 @@
                         
                         @foreach (var admDiv in AdministrativeDivisionList)
                         {
-                            <option value="@admDiv.AdministrativeDivisionId">@admDiv.Name</option>
+                            <option selected="@((parentAdministrativeDivision != null && parentAdministrativeDivision.AdministrativeDivisionId == admDiv.AdministrativeDivisionId) ? true : false)" value="@admDiv.AdministrativeDivisionId">@admDiv.Name</option>
                         }
                     </select>
                 }
@@ -88,12 +88,13 @@
 @code {
     [Parameter]
     public int? Id { get; set; }
-    private string title = "إضافة مستوى تقسيم إداري";
+    private string title = "إضافة الهيكل الإداري";
     private AdministrativeDivision? administrativeDivision = new(); // Field to hold the current AdministrativeDivisionType
     private AdministrativeDivision? parentAdministrativeDivision = new();
     private List<Country> countries = new();
     private List<CountryStructure> allCountryStructureList = new();
     private List<CountryStructure> countryStructureList = new();
+    private List<AdministrativeDivision> AllAdministrativeDivisionList = new();
     private List<AdministrativeDivision> AdministrativeDivisionList = new();
     [Inject] IJSRuntime JS { get; set; }
 
@@ -103,16 +104,17 @@
         countries = (await CountryService.GetAllAsync()).ToList();
         allCountryStructureList = (await CountryStructureServie.GetAllAsync()).ToList();
 
-        AdministrativeDivisionList = (await AdministrativeDivisionService.GetAllAsync()).ToList(); // Fetching administrative divisions
-        AdministrativeDivisionList.Insert(0, new AdministrativeDivision { AdministrativeDivisionId = 0, Name = "لا يوجد" });
+        AllAdministrativeDivisionList = (await AdministrativeDivisionService.GetAllAsync()).ToList(); // Fetching administrative divisions
+        AllAdministrativeDivisionList.Insert(0, new AdministrativeDivision { AdministrativeDivisionId = 0, Name = "لا يوجد" });
         if (Id.HasValue && Id.Value > 0)
         {
-            title = "تعديل مستوى تقسيم إداري";
+            title = "تعديل الهيكل الإداري";
             // administrativeDivision = await AdministrativeDivisionService.GetByIdAsync(Id.Value);
-            administrativeDivision = AdministrativeDivisionList.First(ad=>ad.AdministrativeDivisionId==Id);
-            countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == administrativeDivision.CountryId).ToList();
+            administrativeDivision = AllAdministrativeDivisionList.First(ad=>ad.AdministrativeDivisionId==Id);
+            AdministrativeDivisionList = AllAdministrativeDivisionList.Where(ad => ad.CountryId==administrativeDivision.CountryId || ad.AdministrativeDivisionId==0).ToList();
             // administrativeDivisionType.include(c => c.Country);
         }
+        countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == administrativeDivision.CountryId).ToList();
         parentAdministrativeDivision = AdministrativeDivisionList.FirstOrDefault(ad => ad.AdministrativeDivisionId == administrativeDivision.ParentId);
 
     }
@@ -159,11 +161,19 @@
     private void OnCountryChange(ChangeEventArgs e)
     {
 
-        if (int.TryParse(e.Value?.ToString(), out int selectedDivisionId))
+        if (int.TryParse(e.Value?.ToString(), out int selectedCountryId))
         {
-            administrativeDivision.CountryId = selectedDivisionId;
-            countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == selectedDivisionId).ToList();
-            StateHasChanged();
+            administrativeDivision.CountryId = selectedCountryId;
+            countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == selectedCountryId).ToList();
+            AdministrativeDivisionList = AllAdministrativeDivisionList.Where(ad => ad.CountryId == selectedCountryId || ad.AdministrativeDivisionId==0).ToList();
+
+        }
+    }
+    private void OnCountryStructureChange(ChangeEventArgs e)
+    {
+        if(int.TryParse(e.Value?.ToString(), out int selectedCountryStructureId))
+        {
+            administrativeDivision.CountryStructureId = selectedCountryStructureId;
 
         }
     }
@@ -182,7 +192,9 @@
                 administrativeDivision.CountryId = 0; // Reset CountryId if "لا يوجد" is selected
             }
             administrativeDivision.ParentId = selectedDivisionId;
-            StateHasChanged();
+            parentAdministrativeDivision = AdministrativeDivisionList.FirstOrDefault(ad => ad.AdministrativeDivisionId == administrativeDivision.ParentId);
+
+            // StateHasChanged();
             
         }
     }
