@@ -1,7 +1,104 @@
 ﻿@page "/Hotel/List"
+@using CoreBusiness
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<Hotel> HotelService
+@inject NavigationManager NavigationManager
 
-<h3>HotelList</h3>
+<div class="m-0 p-0" dir="rtl">
+    <div class="card shadow" dir="rtl">
+        <div class="card-header">
+            <h3 class="mb-4">الفنادق</h3>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+            @if (hotelList == null)
+            {
+                <p>جاري التحميل...</p>
+            }
+
+            else
+            {
+                <PagedTable TItem="Hotel"
+                            Items="hotelList"
+                            Language="@language"
+                            Columns="@HotelColumns"
+                            OnView="ViewHotel"
+                            OnEdit="EditHotel" />
+            }
+
+
+        </div>
+    </div>
+
+</div>
 
 @code {
+    private List<Hotel> hotelList;
+    private List<Country> countries;
+    
+    private string language = "Ar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        hotelList = (await HotelService.GetAllAsync()).ToList();
+        
+        if (hotelList == null || !hotelList.Any())
+        {
+            // Logic to handle situation when no guests are available
+            // For example, set default values or notify the user
+        }
+        else
+        {
+            // Additional processing of guests can be added here
+        }
+    }
+
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/Hotel/Form");
+    }
+
+
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<Hotel>.ColumnDefinition<Hotel>> HotelColumns => GetHotelColumns();
+    private List<PagedTable<Hotel>.ColumnDefinition<Hotel>> GetHotelColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "HotelId", GetValue = h => h.HotelId },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = h => h.Name },
+            new() { Title = IsArabic ? "الهاتف 1" : "Phone 1", Property = "Phone1", GetValue = h => h.Phone1 },
+            new() { Title = IsArabic ? "الهاتف 2" : "Email", Property = "Phone2", GetValue = h => h.Phone2 },
+            new() { Title = IsArabic ? "البريد الإلكتروني" : "Email", Property = "Email", GetValue = h => h.Email },
+            new() { Title = IsArabic ? "العنوان" : "Address", Property = "Address", GetValue = h => h.Address },
+            // New column for Phone Number
+            // new() { Title = IsArabic ? "رقم الهاتف" : "Phone Number", Property = "PhoneNumber", GetValue = g => g.phone },
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewHotel(Hotel hotel)
+    {
+        NavigationManager.NavigateTo($"/Hotel/Details/{hotel.HotelId}");
+        return Task.CompletedTask;
+    }
+
+    private Task EditHotel(Hotel hotel)
+    {
+        NavigationManager.NavigateTo($"/Hotel/Form/{hotel.HotelId}");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
 
 }
