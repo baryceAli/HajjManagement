@@ -32,8 +32,8 @@
                 @if (AdministrativeDivisionList != null && AdministrativeDivisionList.Any())
                 {
 
-                    <select id="division-select" class="form-control" @bind="administrativeDivision.ParentId">
-                        @* <option value="">Select a country...</option> *@
+                    <select id="division-select" @onchange="OnDivisionChange" class="form-control" >
+                        
                         @foreach (var admDiv in AdministrativeDivisionList)
                         {
                             <option value="@admDiv.AdministrativeDivisionId">@admDiv.Name</option>
@@ -44,17 +44,26 @@
 
             <div class="mb-3">
                 <label for="CountryId" class="form-label">البلد</label>
-                @if (countries != null && countries.Any())
+                @if (Id > 0)
                 {
-                    
-                    <select id="country-select" class="form-control" disabled="@(( Id>0|| administrativeDivision.ParentId!=null || administrativeDivision.ParentId>0)?true:false)" @bind="administrativeDivision.CountryId">
-                        <option value="">Select a country...</option>
-                        @foreach (var country in countries)
-                        {
-                            <option value="@country.CountryId">@country.Name</option>
-                        }
-                    </select>
+                    <input type="text" class="form-control" value="@(countries.FirstOrDefault(c => c.CountryId == administrativeDivision.CountryId)?.Name)" disabled />
                 }
+                else
+                {
+                    @if (countries != null && countries.Any())
+                    {
+
+                        <select id="country-select" class="form-control" @bind="administrativeDivision.CountryId"
+                                disabled="@((administrativeDivision != null && administrativeDivision.ParentId != null && administrativeDivision.ParentId > 0) ? true : false)">
+                            <option value="">Select a country...</option>
+                            @foreach (var country in countries)
+                            {
+                                <option value="@country.CountryId">@country.Name</option>
+                            }
+                        </select>
+                    }
+                }
+                
             </div>
 
             <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
@@ -77,8 +86,8 @@
     override protected async Task OnInitializedAsync()
     {
         countries = (await CountryService.GetAllAsync()).ToList();
-        
-        
+
+
         AdministrativeDivisionList = (await AdministrativeDivisionService.GetAllAsync()).ToList(); // Fetching administrative divisions
         AdministrativeDivisionList.Insert(0, new AdministrativeDivision { AdministrativeDivisionId = 0, Name = "لا يوجد" });
         if (Id.HasValue && Id.Value > 0)
@@ -89,14 +98,14 @@
             // administrativeDivisionType.include(c => c.Country);
         }
         parentAdministrativeDivision = AdministrativeDivisionList.FirstOrDefault(ad => ad.AdministrativeDivisionId == administrativeDivision.ParentId);
-        
+
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
-            // await JS.InvokeVoidAsync("initializeTomSelect", "#division-select");
+            await JS.InvokeVoidAsync("initializeTomSelect", "#division-select");
 
         }
     }
@@ -130,5 +139,24 @@
     private void onCancel()
     {
         NavigationManager.NavigateTo("/AdministrativeDivision/List");
+    }
+    private void OnDivisionChange(ChangeEventArgs e)
+    {
+        
+        if (int.TryParse(e.Value?.ToString(), out int selectedDivisionId))
+        {
+            var selectedDivision = AdministrativeDivisionList.FirstOrDefault(ad => ad.AdministrativeDivisionId == selectedDivisionId);
+            if(selectedDivision != null && selectedDivision.AdministrativeDivisionId>0)
+            {
+                administrativeDivision.CountryId = selectedDivision.CountryId;
+            }
+            else
+            {
+                administrativeDivision.CountryId = 0; // Reset CountryId if "لا يوجد" is selected
+            }
+            administrativeDivision.ParentId = selectedDivisionId;
+            StateHasChanged();
+            
+        }
     }
 }
