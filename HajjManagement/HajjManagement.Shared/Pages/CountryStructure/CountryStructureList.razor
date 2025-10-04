@@ -61,9 +61,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        allCountryStructureList= (await CountryStructureService.GetAllAsync()).ToList();
-        countryStructureList = allCountryStructureList;
         countries = await CountryService.GetAllAsync(); 
+        allCountryStructureList= (await CountryStructureService.GetAllAsync()).ToList();
+        countryStructureList = new();// allCountryStructureList;
 
     }
 
@@ -77,7 +77,7 @@
         {
             if(countryId == 0)
             {
-                countryStructureList = allCountryStructureList;
+                countryStructureList = new();// allCountryStructureList;
             }
             else
             {
@@ -86,7 +86,7 @@
         }
         else
         {
-            countryStructureList = allCountryStructureList;
+            countryStructureList = new();// allCountryStructureList;
         }
         StateHasChanged();
     }
@@ -106,8 +106,9 @@
         {
             new() { Title = IsArabic ? "#" : "#", Property = "CountryStructureId", GetValue = cs => cs.CountryStructureId},
             new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = cs => cs.Name },
-            new() { Title = IsArabic ? "الهيكل الاعلى" : "Higher Structure", Property = "ParentCountryStructureId", GetValue = cs => cs.ParentCountryStructureId },
-            new() { Title = IsArabic ? "الدولة" : "Country", Property = "CountryId", GetValue = cs => cs.CountryId},
+            new() { Title = IsArabic ? "الهيكل الاعلى" : "Higher Structure", Property = "ParentCountryStructureId", 
+                    GetValue = cs =>countryStructureList.FirstOrDefault(csl=>csl.CountryStructureId== cs.ParentCountryStructureId)==null?"لا يوجد":countryStructureList.First(csl=>csl.CountryStructureId== cs.ParentCountryStructureId).Name},
+            new() { Title = IsArabic ? "الدولة" : "Country", Property = "CountryId", GetValue = cs =>countries.First(c=>c.CountryId== cs.CountryId).Name},
         };
     }
     // These methods must exist to handle OnView and OnEdit events
