@@ -7,13 +7,31 @@
 @inject NavigationManager NavigationManager
 
 <div class="m-0 p-0" dir="rtl">
-    <h3>الزوار</h3>
-    <PagedTable TItem="Guest"
-                Items="guests"
-                Language="@language"
-                Columns="@GuestColumns"
-                OnView="ViewGuest"
-                OnEdit="EditGuest" />
+    <div class="card shadow" dir="rtl">
+        <div class="card-header">
+            <h3 class="mb-4">الزوار</h3>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+            @if (guests == null)
+            {
+                <p>جاري التحميل...</p>
+            }
+
+            else
+            {
+                <PagedTable TItem="Guest"
+                            Items="guests"
+                            Language="@language"
+                            Columns="@GuestColumns"
+                            OnView="ViewGuest"
+                            OnEdit="EditGuest" />
+            }
+
+
+        </div>
+    </div>
+
 </div>
 
 @code {
@@ -38,6 +56,12 @@
         }
     }
 
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/Guest/Form");
+    }
+
+
 
     /// <summary>
     /// PageTable Parameters for Guests
@@ -55,21 +79,21 @@
             new() { Title = IsArabic ? "الاسم" : "Name", Property = "GivenName", GetValue = g => g.GivenName + " " + g.LastName },
             new() { Title = IsArabic ? "العنوان" : "Address", Property = "AdministrativeDivisionId", GetValue = g => g.AdministrativeDivisionId },
             new() { Title = IsArabic ? "المشرف" : "Email", Property = "SupervisorId ", GetValue = g => g.SupervisorId },
-            new() { Title = IsArabic ? "الحقيبة" : "Bag", Property = "BagId", GetValue = g => g.BagId},
+            new() { Title = IsArabic ? "الحقيبة" : "Bag", Property = "BagId", GetValue = g => g.BagId },
+            // New column for Phone Number
+            // new() { Title = IsArabic ? "رقم الهاتف" : "Phone Number", Property = "PhoneNumber", GetValue = g => g.phone },
         };
     }
     // These methods must exist to handle OnView and OnEdit events
     private Task ViewGuest(Guest guest)
     {
-        Console.WriteLine($"Viewing user: {guest.GivenName}");
-        // You can navigate to a user details page or open a modal here
+        NavigationManager.NavigateTo($"/Guest/Details/{guest.GuestId}");
         return Task.CompletedTask;
     }
 
     private Task EditGuest(Guest guest)
     {
-        Console.WriteLine($"Editing user: {guest.GivenName}");
-        // You can navigate to a user edit page or open a modal here
+        NavigationManager.NavigateTo($"/Guest/Form/{guest.GuestId}");
         return Task.CompletedTask;
     }
 
