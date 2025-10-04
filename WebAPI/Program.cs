@@ -145,6 +145,7 @@ namespace WebAPI
             builder.Services.AddScoped<IBagService, BagService>();
             builder.Services.AddScoped<IContractService, ContractService>();
             builder.Services.AddScoped<ICountryService, CountryService>();
+            builder.Services.AddScoped<ICountryStructureService, CountryStructureService>();
             builder.Services.AddScoped<IGuestService, GuestService>();
             builder.Services.AddScoped<IHotelService, HotelService>();
             builder.Services.AddScoped<ILogService, LogService>();

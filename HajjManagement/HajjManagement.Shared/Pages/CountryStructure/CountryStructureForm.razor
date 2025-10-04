@@ -1,0 +1,172 @@
+﻿@page "/CountryStructure/Form"
+@page "/CountryStructure/Form/{Id:int?}"
+
+@* <h3>AdministrativeDivisionForm</h3> *@
+@using CoreBusiness
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<CountryStructure> CountryStructureService
+@inject IGenericAPIService<Country> CountryService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="countryStructure" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="NameAr" class="form-label">الاسم بالعربية</label>
+                <InputText id="NameAr" class="form-control" @bind-Value="countryStructure.Name" />
+            </div>
+
+            <div class="mb-3">
+                <label for="CountryId" class="form-label">البلد</label>
+                @if (Id > 0)
+                {
+                    <input type="text" class="form-control" value="@(countries.FirstOrDefault(c => c.CountryId == countryStructure.CountryId)?.Name)" disabled />
+                }
+                else
+                {
+                    @if (countries != null && countries.Any())
+                    {
+                        <select id="country-select" class="form-control" @onchange="onCountryChange">
+                            <option value="">Select a country...</option>
+                            @foreach (var country in countries)
+                            {
+                                <option value="@country.CountryId">@country.Name</option>
+                            }
+                        </select>
+                    }
+                }
+
+            </div>
+
+            <div class="mb-3">
+                <label for="Level" class="form-label">الهيكل الاعلى</label>
+                @if (CountryStructureList != null && CountryStructureList.Any())
+                {
+
+                    <select id="division-select" @onchange="OnCountryStructureChange"  class="form-control" >
+                        
+                        @foreach (var cs in CountryStructureList)
+                        {
+                            <option value="@cs.CountryStructureId">@cs.Name</option>
+                        }
+                    </select>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+            <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    private string title = "إضافة مستوى تقسيم إداري";
+    private CountryStructure? countryStructure = new(); // Field to hold the current AdministrativeDivisionType
+    private CountryStructure? parentCountryStructure = new();
+    private List<Country> countries = new();
+    private List<CountryStructure> CountryStructureList = new();
+    private List<CountryStructure> AllCountryStructureList = new();
+    [Inject] IJSRuntime JS { get; set; }
+
+
+    override protected async Task OnInitializedAsync()
+    {
+        countries = (await CountryService.GetAllAsync()).ToList();
+
+
+        AllCountryStructureList = (await CountryStructureService.GetAllAsync()).ToList(); // Fetching administrative divisions
+        AllCountryStructureList.Insert(0, new CountryStructure { CountryStructureId = 0, Name = "لا يوجد" });
+        if (Id.HasValue && Id.Value > 0)
+        {
+            title = "تعديل مسميات هيكل الدولة";
+            countryStructure = AllCountryStructureList.First(cs=>cs.CountryStructureId== Id);
+            CountryStructureList = AllCountryStructureList.Where(cs=>cs.CountryId==countryStructure.CountryId && cs.CountryStructureId!=Id).ToList();
+            parentCountryStructure = CountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == countryStructure.ParentCountryStructureId);
+        }
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+            // await JS.InvokeVoidAsync("initializeTomSelect", "#division-select");
+        }
+    }
+    private async Task HandleValidSubmit()
+    {
+
+        var country = countries.FirstOrDefault(c => c.CountryId == countryStructure.CountryId);
+
+        // var parentDivision = AdministrativeDivisionList.FirstOrDefault(pd => pd.AdministrativeDivisionId == administrativeDivision.ParentId);
+
+        if (countryStructure!.CountryStructureId == 0)
+        {
+            // countryStructure.CreatedAt = DateTime.UtcNow;
+            // countryStructure.UpdatedAt = DateTime.UtcNow;
+            // ifcountryStructure.ParentCountryStructureId!=null || countryStructure.ParentCountryStructureId>0)
+            // {
+            //     var parentCountryStructure= CountryStructureList.First(pd => pd.CountryStructureId== countryStructure.ParentCountryStructureId);
+            //     countryStructure.CountryId = countries.First(c=>c.CountryId==parentCountryStructure.CountryId).CountryId;
+            // }
+
+            await CountryStructureService.AddAsync(countryStructure);
+        }
+        else
+        {
+            await CountryStructureService.UpdateAsync(countryStructure);
+        }
+
+        NavigationManager.NavigateTo("/CountryStructure/List");
+    }
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/CountryStructure/List");
+    }
+
+    private void OnCountryStructureChange(ChangeEventArgs e)
+    {
+
+        if (int.TryParse(e.Value?.ToString(), out int selectedParentId))
+        {
+            // CountryStructureList = AllCountryStructureList.Where(cs => cs.CountryId == selectedParentId).ToList();
+            if(selectedParentId==0)
+            {
+                countryStructure.ParentCountryStructureId = null;
+                countryStructure.CountryId = 0;
+            }
+            else
+            {
+                countryStructure.ParentCountryStructureId = selectedParentId;
+                var parentCs = CountryStructureList.First(cs => cs.CountryStructureId == selectedParentId);
+                // countryStructure.CountryId = parentCs.CountryId;
+                parentCountryStructure = CountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == selectedParentId);
+            }
+            
+            StateHasChanged();
+
+        }
+    }
+    private void onCountryChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedCountryId))
+        {
+            CountryStructureList = AllCountryStructureList.Where(cs => cs.CountryId == selectedCountryId && cs.CountryStructureId!=Id).ToList();
+            countryStructure.CountryId = selectedCountryId;
+            if (CountryStructureList != null && CountryStructureList.Any())
+            {
+                countryStructure.ParentCountryStructureId = CountryStructureList.First().CountryStructureId;
+            // parentCountryStructure = CountryStructureList.First();
+            }
+            StateHasChanged();
+        }
+    }
+}

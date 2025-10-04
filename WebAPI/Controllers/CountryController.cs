@@ -46,7 +46,7 @@ namespace WebAPI.Controllers
         // -------------------- Only for Admins --------------------
         //[Authorize(Roles = "MainSuperAdmin,MainAdmin")]
         [HttpPost]
-        [MapToApiVersion("1.0")] // only available in v2
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Create([FromBody] Country country)
         {
             var created = await service.AddAsync(country);

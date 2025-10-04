@@ -11,12 +11,11 @@ namespace WebAPI.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")] // v1
     [ApiVersion("2.0")] // v2 (future changes)
-    
-    public class AdministrativeDivisionController : ControllerBase
+    public class CountryStructureController : ControllerBase
     {
-        private readonly IAdministrativeDivisionService service;
+        private readonly ICountryStructureService service;
 
-        public AdministrativeDivisionController(IAdministrativeDivisionService service)
+        public CountryStructureController(ICountryStructureService service)
         {
             this.service = service;
         }
@@ -26,46 +25,51 @@ namespace WebAPI.Controllers
 
 
         // -------------------- Version 1 Specific --------------------
+
         [HttpGet]
         [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get()
         {
-            var administrativeDivision = await service.GetAllAsync();
-            return Ok(administrativeDivision);
+            var countryStructure = await service.GetAllAsync();
+            return Ok(countryStructure);
         }
+        
         [HttpGet("{id}")]
         [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get(int id)
         {
-            var administrativeDivision = await service.GetByIdAsync(id);
-            if (administrativeDivision == null)
+            var countryStructure = await service.GetByIdAsync(id);
+            if (countryStructure == null)
             {
-                return NotFound($"AdministrativeDivision with ID {id} not found.");
+                return NotFound($"CountryStructure with ID {id} not found.");
             }
-            return Ok(administrativeDivision);
+            return Ok(countryStructure);
         }
+        
         [HttpPost]
         [MapToApiVersion("1.0")] // only available in v1
-        public async Task<IActionResult> Create([FromBody] AdministrativeDivision administrativeDivision)
+        public async Task<IActionResult> Create([FromBody] CountryStructure countryStructure)
         {
-            var created = await service.AddAsync(administrativeDivision);
+            var created = await service.AddAsync(countryStructure);
             if (created == null)
             {
-                return BadRequest("Failed to create administrativeDivision.");
+                return BadRequest("Failed to create CountryStructure.");
             }
-            return CreatedAtAction(nameof(Get), new { id = created.AdministrativeDivisionId }, created);
+            return CreatedAtAction(nameof(Get), new { id = created.CountryStructureId }, created);
         }
+        
         [HttpPut]
         [MapToApiVersion("1.0")] // only available in v1
-        public async Task<IActionResult> Update([FromBody] AdministrativeDivision administrativeDivision)
+        public async Task<IActionResult> Update([FromBody] CountryStructure countryStructure)
         {
-            var updated = await service.UpdateAsync(administrativeDivision);
+            var updated = await service.UpdateAsync(countryStructure);
             if (updated == null)
             {
-                return NotFound($"AdministrativeDivision with ID {administrativeDivision.AdministrativeDivisionId} not found.");
+                return NotFound($"CountryStructure with ID {countryStructure.CountryStructureId} not found.");
             }
             return Ok(updated);
         }
+        
         [HttpDelete("{id}")]
         [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Delete(int id)
@@ -73,11 +77,12 @@ namespace WebAPI.Controllers
             var deleted = await service.DeleteAsync(id);
             if (!deleted)
             {
-                return NotFound($"AdministrativeDivision with ID {id} not found.");
+                return NotFound($"CountryStructure with ID {id} not found.");
             }
             return NoContent();
         }
-        // -------------------- Version 2 Specific --------------------
+
+        // -------------------- Version 1 Specific --------------------
 
     }
 }

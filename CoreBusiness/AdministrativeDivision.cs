@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace CoreBusiness
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int CountryId { get; set; }
+        public int CountryStructureId { get; set; }
 
     }
 }

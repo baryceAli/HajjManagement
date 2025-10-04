@@ -9,10 +9,10 @@ namespace Infrastructure.Services
     {
         public CountryService(ApplicationDbContext context) : base(context) { }
     }
-    //public class AdministrativeDivisionTypeService : GenericService<AdministrativeDivisionType>, IAdministrativeDivisionTypeService
-    //{
-    //    public AdministrativeDivisionTypeService(ApplicationDbContext context) : base(context) { }
-    //}
+    public class CountryStructureService : GenericService<CountryStructure>, ICountryStructureService
+    {
+        public CountryStructureService(ApplicationDbContext context) : base(context) { }
+    }
     public class AdministrativeDivisionService : GenericService<AdministrativeDivision>, IAdministrativeDivisionService
     {
         public AdministrativeDivisionService(ApplicationDbContext context) : base(context) { }
