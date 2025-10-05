@@ -13,6 +13,8 @@ namespace CoreBusiness
         public int Beds { get; set; }
         public int UsedBeds { get; set; }
         public int HotelId { get; set; }
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
         //public Hotel Hotel { get; set; }
         //public Hotel Hotel { get; set; }
     }

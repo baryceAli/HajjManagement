@@ -1,7 +1,173 @@
 ﻿@page "/Contract/Form"
+@page "/Contract/Form/{Id:int?}"
 
-<h3>ContractForm</h3>
+@* <h3>AdministrativeDivisionForm</h3> *@
+@using CoreBusiness
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<Contract> ContractService
+@inject IGenericAPIService<Hotel> HotelService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="contract" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="HotelId" class="form-label">الفندق</label>
+                @if (Id > 0)
+                {
+                    <input type="text" class="form-control" value="@(hotelList.FirstOrDefault(c => c.HotelId == contract?.HotelId)?.Name)" disabled />
+                }
+                else
+                {
+                    @if (hotelList != null && hotelList.Any())
+                    {
+
+                        <select id="hotel-select" class="form-control" @onchange="OnHotelChange">
+                            <option value="">Select a hotel...</option>
+                            @foreach (var country in hotelList)
+                            {
+                                <option value="@country.HotelId">@country.Name</option>
+                            }
+                        </select>
+                    }
+                }
+
+            </div>
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">رقم العقد</label>
+                <InputText id="Name" class="form-control" @bind-Value="contract.ContractNo" />
+            </div>
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">عدد الأسرة</label>
+                <InputNumber id="Name" class="form-control" @bind-Value="contract.Beds" />
+            </div>
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">تاريخ بداية العقد</label>
+                <InputDate  id="Name" class="form-control" @bind-Value="contract.Start" />
+            </div>
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">تاريخ نهاية العقد</label>
+                <InputDate id="Name" class="form-control" @bind-Value="contract.End" />
+            </div>
+
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+            <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    [Parameter]
+    public int? Id { get; set; }
+    private string title = "إضافة الهيكل الإداري";
+    private Contract? contract = new(); // Field to hold the current AdministrativeDivisionType
+    // private IEnumerable<Contract> contractList;
+    private List<Hotel> hotelList = new();
+    // private Hotel hotel;
+    [Inject] IJSRuntime JS { get; set; }
+
+
+    override protected async Task OnInitializedAsync()
+    {
+        hotelList = (await HotelService.GetAllAsync()).ToList();
+
+        if (Id.HasValue && Id.Value > 0)
+        {
+            title = "تعديل الهيكل الإداري";
+            contract = await ContractService.GetByIdAsync(Id.Value);
+
+            TimeZoneInfo localZone = TimeZoneInfo.Local;
+
+            // Example usage
+            // DateTime utcDate = DateTime.UtcNow;
+            DateTime start = TimeZoneInfo.ConvertTimeFromUtc(contract.Start, localZone);
+            DateTime end = TimeZoneInfo.ConvertTimeFromUtc(contract.End, localZone);
+
+            contract.Start = start;
+            contract.End = end;
+            // hotel = hotelList.First(ad => ad.HotelId== contract.HotelId);
+
+        }
+        else
+        {
+            contract.Start = DateTime.Now;
+            contract.End = DateTime.Now;
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeTomSelect", "#hotel-select");
+
+        }
+    }
+    private async Task HandleValidSubmit()
+    {
+
+        // var hotel = hotelList.FirstOrDefault(c => c.HotelId== this.hotel.CountryId);
+
+        // var parentDivision = AdministrativeDivisionList.FirstOrDefault(pd => pd.AdministrativeDivisionId == administrativeDivision.ParentId);
+
+        if (contract.ContractId == 0)
+        {
+
+            TimeZoneInfo localZone = TimeZoneInfo.Local;
+
+            // Convert to UTC
+            DateTime utcDate;
+
+            // contract.Start = DateTime.Now;
+
+            utcDate = TimeZoneInfo.ConvertTimeToUtc(contract.Start, localZone);
+            contract.Start = utcDate;
+
+            // contract.End = DateTime.Now;
+            utcDate = TimeZoneInfo.ConvertTimeToUtc(contract.End, localZone);
+            contract.End = utcDate;
+            await ContractService.AddAsync(contract);
+        }
+        else
+        {
+
+            TimeZoneInfo localZone = TimeZoneInfo.Local;
+
+            // Convert to UTC
+            DateTime utcDate;
+            utcDate = TimeZoneInfo.ConvertTimeToUtc(contract.Start, localZone);
+            contract.Start = utcDate;
+
+            utcDate = TimeZoneInfo.ConvertTimeToUtc(contract.End, localZone);
+            contract.End = utcDate;
+            await ContractService.UpdateAsync(contract);
+        }
+
+        NavigationManager.NavigateTo("/Contract/List");
+    }
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/Contract/List");
+    }
+    private void OnHotelChange(ChangeEventArgs e)
+    {
+
+        if (int.TryParse(e.Value?.ToString(), out int selectedHoteld))
+        {
+            contract.HotelId = selectedHoteld;
+
+        }
+    }
+    
 
 }
