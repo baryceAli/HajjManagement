@@ -1,6 +1,7 @@
 using CoreBusiness;
 using CoreBusiness.Dtos;
 using HajjManagement.Shared.Services;
+using HajjManagement.Shared.Services.Custom;
 using HajjManagement.Shared.Utilities;
 using HajjManagement.Web.Components;
 using HajjManagement.Web.Services;
@@ -75,6 +76,7 @@ namespace HajjManagement
                 client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/User/login/");
             });
 
+
             //builder.Services.AddHttpClient<IGenericAPIService<TempUserRole>, GenericAPIService<TempUserRole>>(client =>
             //{
             //    client.BaseAddress = new Uri($"{APIBaseUri}/api/UserRole/");
@@ -92,9 +94,11 @@ namespace HajjManagement
 
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-
+            builder.Services.AddScoped<ICountryStructureCustomService, CountryStructureCustomService>();
+            builder.Services.AddScoped<IAdministrativeDivisionCustomService,AdministrativeDivisionCustomService>();
             // Add device-specific services used by the HajjManagement.Shared project
             builder.Services.AddSingleton<IFormFactor, FormFactor>();
+            
 
             var app = builder.Build();
 

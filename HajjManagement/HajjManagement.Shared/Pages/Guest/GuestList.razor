@@ -2,8 +2,12 @@
 @using CoreBusiness
 @using HajjManagement.Shared.Pages.Common
 @using HajjManagement.Shared.Services
+@using HajjManagement.Shared.Services.Custom
 @inject IGenericAPIService<Guest> GuestService
 @inject IGenericAPIService<Country> CountryService
+@inject IGenericAPIService<CountryStructure> CountryStructureService
+@inject IAdministrativeDivisionCustomService AdministrativeDivisionCustomService
+
 @inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
 @inject NavigationManager NavigationManager
 
@@ -27,7 +31,7 @@
                 @if (countries != null && countries.Any())
                 {
                     
-                    <select id="country-select" class="form-control">
+                    <select id="country-select" @onchange="onCountryChange" class="form-control">
                         <option value="">Select a country...</option>
                         @foreach (var country in countries)
                         {
@@ -37,20 +41,33 @@
                 }
             </div>
             <div class="mb-3">
-                <label for="Level" class="form-label">العنوان</label>
-                @if (divisions != null && divisions.Any())
+                <label for="Level" @onchange="onMainDivisionChange" class="form-label">@(countryStructureFirstLevel==null? "العنوان":countryStructureFirstLevel.Name)</label>
+                @if (MainDivisions != null && MainDivisions.Any())
                 {
 
                     <select id="division-select" class="form-control" >
                         @* <option value="">Select a country...</option> *@
-                        @foreach (var admDiv in divisions)
+                        @foreach (var admDiv in MainDivisions)
                         {
                             <option value="@admDiv.AdministrativeDivisionId">@admDiv.Name</option>
                         }
                     </select>
                 }
             </div>
+            <div class="mb-3">
+                <label for="Level" class="form-label">"العنوان"</label>
+                @if (SubDivisions != null && SubDivisions.Any())
+                {
 
+                    <select id="division-select" class="form-control" >
+                        @* <option value="">Select a country...</option> *@
+                        @foreach (var admDiv in SubDivisions)
+                        {
+                            <option value="@admDiv.AdministrativeDivisionId">@admDiv.Name</option>
+                        }
+                    </select>
+                }
+            </div>
 
                 <PagedTable TItem="Guest"
                             Items="guests"
@@ -68,15 +85,22 @@
 
 @code {
     private List<Guest> guests;
-    private IEnumerable<AdministrativeDivision> divisions;
+    private IEnumerable<AdministrativeDivision> AllDivisions;
+    private IEnumerable<AdministrativeDivision> MainDivisions;
+    private IEnumerable<AdministrativeDivision> SubDivisions;
     private IEnumerable<Country> countries;
+    private IEnumerable<CountryStructure> AllCountryStructureList;
+    private CountryStructure countryStructureFirstLevel;
+    // private IEnumerable<CountryStructure> countryStructureChildren;
+
     private string language = "Ar";
 
     protected override async Task OnInitializedAsync()
     {
         guests = (await GuestService.GetAllAsync()).ToList();
-        divisions = await AdministrativeDivisionService.GetAllAsync();
-        countries = await CountryService.GetAllAsync(); 
+        AllDivisions = await AdministrativeDivisionService.GetAllAsync();
+        countries = await CountryService.GetAllAsync();
+        AllCountryStructureList = await CountryStructureService.GetAllAsync();
         // Additional logic to handle guests data can be added here
         if (guests == null || !guests.Any())
         {
@@ -88,7 +112,35 @@
             // Additional processing of guests can be added here
         }
     }
+    private async Task onCountryChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedCountryId))
+        {
+            countryStructureFirstLevel = AllCountryStructureList.First(cs => cs.CountryId == selectedCountryId && 
+                                                                        ( !cs.ParentCountryStructureId.HasValue||cs.ParentCountryStructureId == 0));
 
+            MainDivisions = AllDivisions.Where(d => d.CountryId == selectedCountryId && (!d.ParentId.HasValue || d.ParentId == 0));
+            if (MainDivisions.Any())
+            {
+
+                SubDivisions = await AdministrativeDivisionCustomService.GetChildrenAsync(MainDivisions.First().AdministrativeDivisionId ,AllDivisions.ToList());
+            }
+            // MainDivisions = (from div in AllDivisions
+            //                  join cs in countryStructureFirstLevel
+            //                  on div.CountryStructureId equals cs.CountryStructureId
+            //                  select div)
+            //               .ToList();
+
+        }
+    }
+    private async Task onMainDivisionChange(ChangeEventArgs e)
+    {
+        if(int.TryParse(e.Value?.ToString(),out int selectedDivisionId))
+        {
+            List<AdministrativeDivision> divs = new List<AdministrativeDivision>(AllDivisions.ToList());
+            SubDivisions = await AdministrativeDivisionCustomService.GetChildrenAsync(selectedDivisionId,divs);
+        }
+    }
     private void CreateNew()
     {
         NavigationManager.NavigateTo("/Guest/Form");
