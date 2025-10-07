@@ -1,5 +1,115 @@
-﻿<h3>UserList</h3>
+﻿@page "/User/List"
+@using CoreBusiness
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<User> UserService
+@inject IGenericAPIService<Country> CountryService
+@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
+@inject NavigationManager NavigationManager
+
+<div class="m-0 p-0" dir="rtl">
+    <div class="card shadow" dir="rtl">
+        <div class="card-header">
+            <h3 class="mb-4">المستخدمون</h3>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> تسجيل مستخدم جديد</button>
+            @if (userList == null)
+            {
+                <p>جاري التحميل...</p>
+            }
+
+            else
+            {
+                <PagedTable TItem="User"
+                            Items="userList"
+                            Language="@language"
+                            Columns="@UserColumns"
+                            OnView="ViewUser"
+                            OnEdit="EditUser" />
+            }
+
+
+        </div>
+    </div>
+
+</div>
 
 @code {
+    private List<User> userList;
+    private IEnumerable<Country> countries;
+    private IEnumerable<AdministrativeDivision> administrativeDivisionList;
+    private string language = "Ar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        countries = await CountryService.GetAllAsync();
+        userList = (await UserService.GetAllAsync()).ToList();
+        administrativeDivisionList = await AdministrativeDivisionService.GetAllAsync();
+        if (userList == null || !userList.Any())
+        {
+            // Logic to handle situation when no guests are available
+            // For example, set default values or notify the user
+        }
+        else
+        {
+            // Additional processing of guests can be added here
+        }
+    }
+
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/User/Form");
+    }
+
+
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<User>.ColumnDefinition<User>> UserColumns => GetUserColumns();
+    private List<PagedTable<User>.ColumnDefinition<User>> GetUserColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = u => u.Id },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "URL_User_Details_Id", 
+                        GetValue = u =>new{Id=u.Id,Name= $"{u.FirstName} {u.LastName}",URL="User/Details"} },
+            new() { Title = IsArabic ? "رقم الجواز" : "Passport", Property = "Passport", GetValue = u => u.Passport },
+            new() { Title = IsArabic ? "الدولة" : "Email", Property = "CountryId", GetValue = u => u.CountryId },
+            new() { Title = IsArabic ? "الوحدة الإدارية" : "AdministrativeDivision", Property = "URL_AdministrativeDivision", 
+                        GetValue = u => new {
+                                                Id = u.AdministrativeDivisionId,
+                                                Name = administrativeDivisionList.First(ad => ad.AdministrativeDivisionId == u.AdministrativeDivisionId).Name,
+                                                URL="AdministrativeDivision/Details"
+                                            }
+                        ,isHidden=false  },
+            // new() { Title = IsArabic ? "الصورة" : "Photo", Property = "ProfilePictureUrl", GetValue = u => u.ProfilePictureUrl },
+            new() { Title = IsArabic ? "الصورة" : "Photo", Property = "pictureURL_images_user_profile_50_50", GetValue = u => u.ProfilePictureUrl },
+            // New column for Phone Number
+            // new() { Title = IsArabic ? "رقم الهاتف" : "Phone Number", Property = "PhoneNumber", GetValue = g => g.phone },
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewUser(User user)
+    {
+        NavigationManager.NavigateTo($"/User/Details/{user.Id}");
+        return Task.CompletedTask;
+    }
+
+    private Task EditUser(User hotel)
+    {
+        NavigationManager.NavigateTo($"/User/Form/{hotel.Id}");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
 
 }

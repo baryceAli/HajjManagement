@@ -1,6 +1,226 @@
 ﻿@page "/Bag/Form"
-<h3>BagForm</h3>
+@page "/Bag/Form/{Id:int?}"
+
+
+@using CoreBusiness
+@using HajjManagement.Shared.Services
+@using HajjManagement.Shared.Services.Custom
+@inject IGenericAPIService<Country> CountryService
+@inject IGenericAPIService<CountryStructure> CountryStructureService
+@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
+@inject IGenericAPIService<User> UserService
+@inject IGenericAPIService<Hotel> HotelService
+@inject IGenericAPIService<Contract> ContractId
+@inject IGenericAPIService<Bag> BagService
+@inject IAdministrativeDivisionCustomService AdministrativeDivisionCustomService
+@inject ICountryStructureCustomService CountryStructureCustomService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="bag" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="mb-3">
+                <label for="CountryId" class="form-label">الدولة</label>
+
+                @if (countryList != null && countryList.Any())
+                {
+
+                    <select id="country-select" class="form-control" @onchange="OnCountryChange">
+                        <option value="">Select a country...</option>
+                        @foreach (var country in countryList)
+                        {
+                            <option value="@country.CountryId">@country.Name</option>
+                        }
+                    </select>
+                }
+            </div>
+            @if(mainDivisions!=null && mainDivisions.Any())
+            {
+   
+                <div class="mb-3">
+                    <label for="divisionId" class="form-label">@(allCountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == mainDivisions.First().CountryStructureId)==null?"المنطقة":allCountryStructureList.First(cs => cs.CountryStructureId == mainDivisions.First().CountryStructureId).Name)</label>
+
+                    @if (mainDivisions != null && mainDivisions.Any())
+                    {
+
+                        <select id="country-select" class="form-control">
+                            <option value="">Select a @allCountryStructureList.First(cs=>cs.CountryStructureId==mainDivisions.First().CountryStructureId).Name ...</option>
+                            @foreach (var md in mainDivisions)
+                            {
+                                <option value="@md.AdministrativeDivisionId">@md.Name</option>
+                            }
+                        </select>
+                    }
+                </div>
+            }
+            @if (childrenCountryStructure != null && childrenCountryStructure.Any())
+            {
+                foreach (var cs in childrenCountryStructure)
+                {
+                    <div class="mb-3">
+                        <label for="divisionId" class="form-label">@cs.Name</label>
+
+                        @{
+                            var admDiv1 = allAdministrativeDivision.Where(ad => ad.CountryStructureId == cs.CountryStructureId).ToList();
+
+                            if (admDiv1 != null && admDiv1.Any())
+                            {
+
+                                <select id="country-select" class="form-control">
+                                    <option value="">Select a @cs.Name ...</option>
+                                    @foreach (var ad in admDiv1)
+                                    {
+                                        <option value="@ad.AdministrativeDivisionId">@ad.Name</option>
+                                    }
+                                </select>
+                            }
+                        }
+                    </div>
+                }
+
+            }
+
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">الاسم</label>
+                <InputText id="Name" class="form-control" @bind-Value="bag.Name" />
+            </div>
+
+            <div class="mb-3">
+                <label for="phone1" class="form-label">الهاتف 1</label>
+                <InputNumber id="phone1" class="form-control" @bind-Value="bag.ContractId" />
+            </div>
+
+            <div class="mb-3">
+                <label for="phone2" class="form-label">الهاتف 2</label>
+                <InputNumber id="phone2" class="form-control" @bind-Value="bag.SupervisorId" />
+            </div>
+
+            <div class="mb-3">
+                <label for="supervisorId" class="form-label">Supervisor</label>
+
+                @{
+                    // var admDiv = allAdministrativeDivision.Where(ad => ad.CountryStructureId == cs.CountryStructureId).ToList();
+                    var admDiv = allAdministrativeDivision.ToList();
+
+                    if (admDiv != null && admDiv.Any())
+                    {
+
+                        <select id="country-select" class="form-control">
+                            <option value="">Select a supervisor ...</option>
+                            @foreach (var ad in admDiv)
+                            {
+                                <option value="@ad.AdministrativeDivisionId">@ad.Name</option>
+                            }
+                        </select>
+                    }
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+            <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    [Parameter]
+    public int? Id { get; set; }
+    private string title = "إضافة بيانات الحقيبة";
+    private IEnumerable<Country> countryList;
+    private IEnumerable<CountryStructure> allCountryStructureList;
+    private IEnumerable<CountryStructure> childrenCountryStructure;
+    private IEnumerable<AdministrativeDivision> allAdministrativeDivision;
+    private IEnumerable<AdministrativeDivision> mainDivisions;
+    private IEnumerable<AdministrativeDivision> childrenDivisions;
+    private IEnumerable<Hotel> hotelList;
+    private IEnumerable<Contract> contractList;
+    private IEnumerable<User> allsupervisorList;
+    private IEnumerable<User> supervisorList;
+
+    private Bag? bag = new(); // Field to hold the current AdministrativeDivisionType
+    private Country? currentCountry = new();
+    private CountryStructure? currentCountryStructure = new();
+    private User? supervisor = new();
+    private Hotel? hotel = new();
+    private AdministrativeDivision? currentDivision = new();
+    [Inject] IJSRuntime JS { get; set; }
+
+
+    override protected async Task OnInitializedAsync()
+    {
+        countryList = await CountryService.GetAllAsync();
+        currentCountry = countryList.First();
+        allCountryStructureList = await CountryStructureService.GetAllAsync();
+        allAdministrativeDivision = await AdministrativeDivisionService.GetAllAsync();
+        allsupervisorList = await UserService.GetAllAsync();
+        if (Id.HasValue && Id.Value > 0)
+        {
+            title = "تعديل بيانات الحقيبة";
+            bag = await BagService.GetByIdAsync(Id.Value);
+        }
+        else
+        {
+
+        }
+
+        supervisor = bag.SupervisorId.HasValue && bag.SupervisorId > 0 ? allsupervisorList.First(s => s.Id == bag.SupervisorId) : null;
+        currentCountry = supervisor != null ? countryList.First(c => c.CountryId == supervisor.CountryId) : null;
+        mainDivisions = currentCountry != null ?
+                                allAdministrativeDivision.Where(d => d.CountryId == currentCountry.CountryId && (!d.ParentId.HasValue || d.ParentId == 0))
+                                : new List<AdministrativeDivision>();
+        currentCountryStructure = currentCountry != null ? allCountryStructureList.First(cs => cs.CountryId == currentCountry.CountryId) : null;
+        childrenCountryStructure = currentCountryStructure != null ?
+                                await CountryStructureCustomService.GetChildrenAsync(currentCountryStructure.CountryStructureId, allCountryStructureList.ToList())
+                                : new List<CountryStructure>();
+        childrenDivisions = mainDivisions.Any() ?
+                                await AdministrativeDivisionCustomService.GetChildrenAsync(
+                                                                                mainDivisions.First().AdministrativeDivisionId,
+                                                                                allAdministrativeDivision.ToList())
+                                : new List<AdministrativeDivision>();
+        currentDivision = childrenDivisions.Any() ? childrenDivisions.First() : null;
+        supervisorList = currentDivision != null ?
+                                allsupervisorList.Where(s => s.AdministrativeDivisionId == currentDivision.AdministrativeDivisionId)
+                                : new List<User>();
+
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        if (bag!.BagId == 0)
+        {
+            await BagService.AddAsync(bag);
+        }
+        else
+        {
+            await BagService.UpdateAsync(bag);
+        }
+
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+
+    private async Task OnCountryChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var selectedCountryId))
+        {
+            currentCountry = countryList.First(c => c.CountryId == selectedCountryId);
+            mainDivisions = allAdministrativeDivision.Where(ad => ad.CountryId == selectedCountryId && (!ad.ParentId.HasValue || ad.ParentId == 0));
+            childrenCountryStructure = mainDivisions != null && mainDivisions.Any() ?
+                                          await CountryStructureCustomService.GetChildrenAsync(mainDivisions.First().CountryStructureId, allCountryStructureList.ToList())
+                                          :new List<CountryStructure>();
+        }
+    }
 
 }

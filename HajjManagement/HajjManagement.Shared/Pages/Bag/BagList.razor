@@ -1,6 +1,144 @@
 ﻿@page "/Bag/List"
-<h3>BagList</h3>
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@using CoreBusiness
+@inject IGenericAPIService<Bag> BagService
+@inject IGenericAPIService<Contract> ContractService
+@inject IGenericAPIService<Hotel> HotelService
+@inject IGenericAPIService<User> UserService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3 class="mb-4">الحقائب</h3>
+    </div>
+    <div class="card-body">
+        <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+
+        @if (contractList == null)
+        {
+            <p>جاري التحميل...</p>
+        }
+
+        else
+        {
+            <PagedTable TItem="Bag"
+                        Items="Bags"
+                        Language="@language"
+                        Columns="@BagColumns"
+                        OnView="ViewBag"
+                        OnEdit="EditBag" />
+        }
+
+    </div>
+</div>
+
 
 @code {
+    // Add property to hold the list of AdministrativeDivisionTypes
+    private List<Bag> Bags;
+    private IEnumerable<Contract> contractList;
+    // private IEnumerable<Contract> allContractList;
+    private IEnumerable<Hotel> Hotels;
+    private IEnumerable<User> supervisors;
+    // private Hotel selectedHotel = new();
+    private int selectedHotelId = 0;
+    [Inject] IJSRuntime JS { get; set; }
+    private string language = "Ar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Bags = (await BagService.GetAllAsync()).ToList();
+            Hotels = await HotelService.GetAllAsync();
+            contractList = await ContractService.GetAllAsync();
+            supervisors = await UserService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching data: {ex.Message}");
+            contractList = new List<Contract>();
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+
+
+        }
+    }
+
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/Bag/Form");
+    }
+
+    private void ViewDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/Bag/Details/{id}");
+    }
+
+    private void Edit(int id)
+    {
+        NavigationManager.NavigateTo($"/Bag/Form/{id}");
+    }
+
+    private async Task onHotelChanged(ChangeEventArgs e)
+    {
+
+        if (int.TryParse(e.Value?.ToString(), out int hotelId))
+        {
+
+            selectedHotelId = hotelId;
+
+            // contractList = allContractList
+            //     .Where(ad => ad.HotelId == selectedHotelId)
+            //     .ToList();
+        }
+    }
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<Bag>.ColumnDefinition<Bag>> BagColumns => GetBagColumns();
+    private List<PagedTable<Bag>.ColumnDefinition<Bag>> GetBagColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "BagId", GetValue = b => b.BagId},
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = b => b.Name},
+            new() { Title = IsArabic ? "الفندق" : "Hotel", Property = "ContractId", GetValue = b =>
+                                                                                       contractList.First(h=>h.ContractId== b.ContractId).ContractNo},
+            new() { Title = IsArabic ? "رقم العقد" : "Contract No", Property = "HotelId", GetValue = b =>
+                                                                                       contractList.First(h=>h.ContractId == b.ContractId).ContractNo},
+            new() { Title = IsArabic ? "المشرف" : "Supervisor", Property = "HotelId", GetValue = b =>
+                                                                                       supervisors.First(u=>u.Id== b.SupervisorId).UserName},
+
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewBag(Bag bag)
+    {
+        NavigationManager.NavigateTo($"/Bag/Details/{bag.BagId}");
+        return Task.CompletedTask;
+    }
+
+    private Task EditBag(Bag contract)
+    {
+        NavigationManager.NavigateTo($"/Bag/Form/{contract.BagId}");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
 
 }

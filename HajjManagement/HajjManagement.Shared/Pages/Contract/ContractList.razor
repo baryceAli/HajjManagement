@@ -36,7 +36,7 @@
 @code {
     // Add property to hold the list of AdministrativeDivisionTypes
     private List<Contract> contractList ;
-    private IEnumerable<Contract> allContractList ;
+    // private IEnumerable<Contract> allContractList ;
     private IEnumerable<Hotel> Hotels ;
 
     // private Hotel selectedHotel = new();
@@ -48,14 +48,11 @@
     {
         try
         {
-            Hotels = (await HotelService.GetAllAsync()).ToList();
+            Hotels = await HotelService.GetAllAsync();
             // selectedHotelId= Hotels;
 
-            allContractList = await ContractService.GetAllAsync();
-            contractList = allContractList
-                .Where(ad => ad.HotelId== selectedHotelId)
-                .ToList();
-            contractList = new List<Contract>(allContractList);
+            contractList = (await ContractService.GetAllAsync()).ToList();
+            
         }
         catch (Exception ex)
         {
@@ -68,8 +65,6 @@
         if (firstRender)
         {
             await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
-
-
         }
     }
 
@@ -96,9 +91,9 @@
 
             selectedHotelId = hotelId;
 
-            contractList = allContractList
-                .Where(ad => ad.HotelId == selectedHotelId)
-                .ToList();
+            // contractList = allContractList
+            //     .Where(ad => ad.HotelId == selectedHotelId)
+            //     .ToList();
         }
     }
 

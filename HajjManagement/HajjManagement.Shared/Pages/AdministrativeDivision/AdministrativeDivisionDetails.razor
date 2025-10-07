@@ -144,7 +144,7 @@ else
         return new()
         {
             new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = u => u.Id },
-            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = u => u.FirstName + " " + u.LastName },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = $"URL_User", GetValue = u => new {Id=u.Id,Name=u.FirstName + " " + u.LastName,URL="User/Details" }},
             new() { Title = IsArabic ? "البريد" : "Email", Property = "Email", GetValue = u => u.Email }
         };
     }
@@ -218,7 +218,9 @@ else
         return new()
         {
             new() { Title = IsArabic ? "#" : "#", Property = "AdministrativeDivisionId", GetValue = g => g.AdministrativeDivisionId },
-            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = g => g.Name },
+            // new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = g => g.Name },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "URL_AdministrativeDivision", 
+                            GetValue = g => new{Id=g.AdministrativeDivisionId,Name=g.Name, URL="AdministrativeDivision/Details" }},
             new() { Title = IsArabic ? "البلد" : "Country", Property = "CountryId", GetValue = g =>countries.First(c=>c.CountryId== g.CountryId).Name},
         };
     }

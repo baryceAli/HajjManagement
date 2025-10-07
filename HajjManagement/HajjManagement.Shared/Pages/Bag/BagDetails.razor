@@ -1,6 +1,7 @@
-﻿@page "/Bag/Details"
+﻿@page "/Bag/Details/{Id:int?}"
 <h3>تفاصيل الحقيبة</h3>
 
 @code {
-
+    [Parameter]
+    public int Id { get; set; }
 }

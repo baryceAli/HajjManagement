@@ -6,7 +6,7 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    @foreach (var column in Columns)
+                    @foreach (var column in Columns.Where(c=>c.isHidden==false))
                     {
                         <th @onclick="() => Sort(column.Property)" style="cursor:pointer">
                             @column.Title
@@ -16,7 +16,7 @@
                     <th>@(IsArabic ? "الإجراءات" : "Actions")</th>
                 </tr>
                 <tr>
-                    @foreach (var column in Columns)
+                    @foreach (var column in Columns.Where(c => c.isHidden == false))
                     {
                         <th>
                             <input class="form-control" type="text"
@@ -35,7 +35,7 @@
                     {
 
                         <tr>
-                            @foreach (var column in Columns)
+                            @foreach (var column in Columns.Where(c => c.isHidden == false))
                             {
                                 @* <td>@column.CellTemplate(item)</td> *@
                                 <td>@column.RenderCell(item)</td>
@@ -51,7 +51,7 @@
                 else
                 {
                     <tr>
-                        <td class="text-danger text-center" colspan="@(Columns.Count+1)">لا توجد بيانات</td>
+                        <td class="text-danger text-center" colspan="@(Columns.Count + 1)">لا توجد بيانات</td>
                     </tr>
                 }
             </tbody>
@@ -166,11 +166,137 @@
         public string Title { get; set; } = "";
         public string Property { get; set; } = "";
         public string? SearchValue { get; set; }
+        public bool? isHidden { get; set; } = false;
         public Func<T, object?> GetValue { get; set; } = _ => null!;
         public Func<T, RenderFragment>? CellTemplate { get; set; }
 
-        public RenderFragment RenderCell(T item) =>
-            CellTemplate != null ? CellTemplate(item) : builder => builder.AddContent(0, GetValue(item));
+        // public RenderFragment RenderCell(T item) =>
+        //     CellTemplate != null ? CellTemplate(item) : builder => builder.AddContent(0, GetValue(item));
+
+        public RenderFragment RenderCell(T item) => builder =>
+        {
+            var value = GetValue(item);
+            var valueStr = value?.ToString() ?? string.Empty;
+
+
+            // --------------------------
+            // PATTERN 1: Local image (pictureURL_)
+            // --------------------------
+
+            // --------------------------
+            // PATTERN 2: Remote image (imageURL_)
+            // --------------------------
+
+            // --------------------------
+            // PATTERN 3: Hyperlink (URL_)
+            // New Rule: last part is property name containing ID
+            // Example: URL_User_Details_Id => <a href="/user/details/{item.Id}">{value}</a>
+            // --------------------------
+
+
+
+            // --------------------------
+            // PATTERN 1: Local image (pictureURL_)
+            // --------------------------
+
+            if (Property.StartsWith("pictureURL_", StringComparison.OrdinalIgnoreCase))
+            {
+                var parts = Property.Split('_', StringSplitOptions.RemoveEmptyEntries);
+
+                string imagePath = "images";
+                string width = "50";
+                string height = "50";
+                string defaultImage = "default.png";
+
+                if (parts.Length > 3)
+                {
+                    bool hasCustomDefault = parts.Length >= 5 && parts[^1].Contains('.');
+                    if (hasCustomDefault)
+                    {
+                        defaultImage = parts[^1];
+                        height = parts[^2];
+                        width = parts[^3];
+                        imagePath = string.Join('/', parts.Skip(1).Take(parts.Length - 4));
+                    }
+                    else
+                    {
+                        height = parts[^1];
+                        width = parts[^2];
+                        imagePath = string.Join('/', parts.Skip(1).Take(parts.Length - 3));
+                    }
+                }
+
+                var src = $"_content/HajjManagement.Shared/{imagePath}/{(string.IsNullOrEmpty(valueStr) ? defaultImage : valueStr)}";
+
+                builder.OpenElement(0, "img");
+                builder.AddAttribute(1, "src", src);
+                builder.AddAttribute(2, "width", width);
+                builder.AddAttribute(3, "height", height);
+                builder.AddAttribute(4, "alt", "Image");
+                builder.CloseElement();
+            }
+
+            // --------------------------
+            // PATTERN 2: Remote image (imageURL_)
+            // --------------------------
+
+            else if (Property.StartsWith("imageURL_", StringComparison.OrdinalIgnoreCase))
+            {
+                var parts = Property.Split('_', StringSplitOptions.RemoveEmptyEntries);
+
+                string width = "50";
+                string height = "50";
+
+                if (parts.Length >= 3)
+                {
+                    width = parts[1];
+                    height = parts[2];
+                }
+
+                var src = string.IsNullOrEmpty(valueStr)
+                ? "https://via.placeholder.com/50x50?text=No+Image"
+                : valueStr;
+
+                builder.OpenElement(0, "img");
+                builder.AddAttribute(1, "src", src);
+                builder.AddAttribute(2, "width", width);
+                builder.AddAttribute(3, "height", height);
+                builder.AddAttribute(4, "alt", "Image");
+                builder.CloseElement();
+            }
+
+            // --------------------------
+            // PATTERN 3: Hyperlink (URL_)
+            // New Rule: last part is property name containing ID
+            // Example: URL_User_Details_Id => <a href="/user/details/{item.Id}">{value}</a>
+            // --------------------------
+            else if (Property.StartsWith("URL_", StringComparison.OrdinalIgnoreCase))
+            {
+                dynamic val = value; // val.Id, val.Name
+                var href = $"/{val.URL}/{val.Id}";
+
+                builder.OpenElement(0, "a");
+                builder.AddAttribute(1, "href", href);
+                builder.AddContent(2, val.Name);
+                builder.CloseElement();
+
+             }
+
+             // --------------------------
+             // DEFAULT: Normal text or custom template
+             // --------------------------
+             else if (CellTemplate != null)
+             {
+                 builder.AddContent(5, CellTemplate(item));
+             }
+             else
+             {
+                 builder.AddContent(6, valueStr);
+             }
+         };
+
+
+
     }
 
 
