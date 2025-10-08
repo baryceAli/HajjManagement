@@ -10,3 +10,8 @@ window.initializeTomSelect = (selector) => {
     }
 };
 
+window.triggerClick = (element) => {
+    if (element) {
+        element.click();
+    }
+};

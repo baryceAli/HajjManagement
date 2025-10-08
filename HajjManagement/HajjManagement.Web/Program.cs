@@ -96,6 +96,7 @@ namespace HajjManagement
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             builder.Services.AddScoped<ICountryStructureCustomService, CountryStructureCustomService>();
             builder.Services.AddScoped<IAdministrativeDivisionCustomService,AdministrativeDivisionCustomService>();
+            builder.Services.AddScoped<IUserCustomService, UserCustomService>();
             // Add device-specific services used by the HajjManagement.Shared project
             builder.Services.AddSingleton<IFormFactor, FormFactor>();
             
