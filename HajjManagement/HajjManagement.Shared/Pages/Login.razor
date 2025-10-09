@@ -10,47 +10,50 @@
 @inject IGenericAPIService<LoginDto> userService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
-<div class="container login-container d-flex align-items-center justify-content-center">
-    <div class="row w-100">
-        <div class="col-md-6 offset-md-3">
-            <div class="card login-card p-4">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Login</h3>
-                    <EditForm Model="@login" OnValidSubmit="HandleLogin">
-                        <div class="mb-3">
-                            <label for="userName" class="form-label">User name</label>
-                            <input type="text" class="form-control" @bind="login.LoginCode" id="userName" placeholder="Enter user name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" @bind="login.Password" id="password" placeholder="Password" required>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">Remember me</label>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Login</button>
-                        </div>
-                    </EditForm>
-                    <div class="text-center mt-3">
-                        <small><a href="#">Forgot password?</a></small>
-                    </div>
+
+<div class='container d-flex justify-content-center align-items-center vh-100'>
+    <div class='card shadow' style='max-width: 500px; width:100%;'>
+        <div class='card-header'>
+            <h3>Login</h3>
+        </div>
+        <div class='card-body'>
+            <EditForm Model="@login" OnValidSubmit="HandleLogin">
+                <div class="mb-3">
+                    <label for="userName" class="form-label">User name</label>
+                    <input type="text" class="form-control" @bind="login.LoginCode" id="userName" placeholder="Enter user name" required>
                 </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" @bind="login.Password" id="password" placeholder="Password" required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </EditForm>
+
+        </div>
+        <div class="card-footer">
+            <div class="text-center">
+                <small><a href="#">Forgot password?</a></small>
             </div>
         </div>
     </div>
 </div>
+
 @code {
     LoginDto login = new LoginDto();
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         login = new LoginDto
-            {
-                LoginCode = "MainSuperAdmin",
-                Password = "Admin@123"
-            };
-        base.OnInitialized();
+        {
+            LoginCode = "MainSuperAdmin",
+            Password = "Admin@123"
+        }; 
+        await HandleLogin();
     }
     private async Task HandleLogin()
     {
@@ -61,11 +64,11 @@
             // GlobalData.User = user;
             GlobalData.Token = loginResponse.Token;
             GlobalData.User = loginResponse.User;
-
+            GlobalData.CurrentCountryId = GlobalData.User.CountryId;
             ((CustomAuthStateProvider)AuthStateProvider)
                 .NotifyUserAuthentication(loginResponse.Token);
 
-            NavigationManager.NavigateTo("/");
+            // NavigationManager.NavigateTo("/");
 
             NavigationManager.NavigateTo("/");
             return;

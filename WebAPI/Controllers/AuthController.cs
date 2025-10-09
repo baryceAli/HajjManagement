@@ -34,9 +34,11 @@ namespace WebAPI.Controllers
         [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Register([FromBody] RegisterRequest model)
         {
+
             var user = new User
             {
                 UserName = model.Email,
+                CountryId=model.countryId,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber
             };
@@ -275,6 +277,6 @@ namespace WebAPI.Controllers
             return Content(errorHtml, "text/html");
         }
     }
-    public record RegisterRequest(string Email, string Password, string PhoneNumber);
+    public record RegisterRequest(string Email, string Password,int countryId, string PhoneNumber);
     public record PhoneOtpRequest(int UserId, string Otp);
 }

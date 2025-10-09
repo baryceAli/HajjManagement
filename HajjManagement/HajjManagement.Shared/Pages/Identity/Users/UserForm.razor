@@ -41,6 +41,16 @@
     <div>
         <EditForm Model="user" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                                 @* ValueExpression="@(() =>user.AdministrativeDivisionId)" *@
+            <CountryStructurePage 
+                                 Id="@((int)(Id??0))"
+                                 
+                                 IsEditMode="@((Id??0) > 0)"
+                                 @bind-Value="user.AdministrativeDivisionId"
+                                 OnCountryChanged="()=>{}"
+                                 OnMainDivisionChanged="()=>{}" />
+
             <div class="row mt-3 mx-2">
 
                 <div class="col">

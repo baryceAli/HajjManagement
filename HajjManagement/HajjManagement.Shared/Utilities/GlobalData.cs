@@ -11,5 +11,6 @@ namespace HajjManagement.Shared.Utilities
     {
         public static User? User { get; set; } // This will hold the current user data, if logged in
         public static string? Token { get; set; }
+        public static int CurrentCountryId { get; set; }
     }
 }

@@ -106,7 +106,7 @@
 
                 @{
                     // var admDiv = allAdministrativeDivision.Where(ad => ad.CountryStructureId == cs.CountryStructureId).ToList();
-                    var admDiv = allAdministrativeDivision.ToList();
+                    var admDiv =allAdministrativeDivision!=null? allAdministrativeDivision.ToList():new List<AdministrativeDivision>();
 
                     if (admDiv != null && admDiv.Any())
                     {

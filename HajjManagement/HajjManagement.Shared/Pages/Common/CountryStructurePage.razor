@@ -1,0 +1,172 @@
+﻿@using HajjManagement.Shared.Services.Custom
+@using System.Linq.Expressions
+@* @typeparam TModel *@
+
+<div class="row mt-3 mx-2">
+    <!-- Country -->
+    <div class="col">
+        <div class="mb-3">
+            <label class="form-label">البلد</label>
+            @if (countries?.Any() == true)
+            {
+                <select class="form-control" @onchange="OnCountryChange">
+                    <option value="">Select a country...</option>
+                    @foreach (var country in countries)
+                    {
+                        <option value="@country.CountryId" selected="@(country.CountryId == SelectedCountryId)">
+                            @country.Name
+                        </option>
+                    }
+                </select>
+            }
+        </div>
+    </div>
+
+    <!-- Main Administrative Division -->
+    <div class="col">
+        <div class="mb-3">
+            @if (mainAdministrativeDivisions?.Any() == true)
+            {
+                var label = countryStructures.First(cs => cs.CountryStructureId == mainAdministrativeDivisions.First().CountryStructureId).Name;
+                <label class="form-label">@label</label>
+                <select class="form-control" @onchange="OnMainAdmDivChange">
+                    <option value="">Select a @label...</option>
+                    @foreach (var mad in mainAdministrativeDivisions)
+                    {
+                        <option value="@mad.AdministrativeDivisionId" selected="@(mad.AdministrativeDivisionId == SelectedMainDivisionId)">
+                            @mad.Name
+                        </option>
+                    }
+                </select>
+            }
+        </div>
+    </div>
+
+    <!-- Child Administrative Division -->
+    <div class="col">
+        <div class="mb-3">
+            @if (childrenAdministrativeDivisions?.Any() == true)
+            {
+                <label class="form-label">الوحدات الإدارية</label>
+                <InputSelect TValue="int"
+                             class="form-control"
+                             @bind-Value="Value">
+                    <option value="">اختر الوحدة الإدارية )*(</option>
+                    @foreach (var mad in childrenAdministrativeDivisions)
+                    {
+                        <option value="@mad.AdministrativeDivisionId">
+                            @countryStructures.First(cs => cs.CountryStructureId == mad.CountryStructureId).Name: @mad.Name
+                        </option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="ValueExpression" />
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    // [Parameter] public TModel Model { get; set; } = default!;
+    [Parameter] public Expression<Func<int>> ValueExpression { get; set; } = default!;
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+    [Parameter] public bool IsEditMode { get; set; } = false;
+
+    // 🔥 Callbacks for parent
+    [Parameter] public EventCallback<int> OnCountryChanged { get; set; }
+    [Parameter] public EventCallback<int> OnMainDivisionChanged { get; set; }
+
+    [Inject] public IGenericAPIService<Country> CountryService { get; set; } = default!;
+    [Inject] public IGenericAPIService<CountryStructure> CountryStructureService { get; set; } = default!;
+    [Inject] public IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService { get; set; } = default!;
+    [Inject] public IAdministrativeDivisionCustomService AdministrativeDivisionCustomService { get; set; } = default!;
+
+    private IEnumerable<Country> countries = [];
+    private IEnumerable<CountryStructure> countryStructures = [];
+    private IEnumerable<AdministrativeDivision> administrativeDivisions = [];
+    private IEnumerable<AdministrativeDivision> mainAdministrativeDivisions = [];
+    private IEnumerable<AdministrativeDivision> childrenAdministrativeDivisions = [];
+
+    private int SelectedCountryId;
+    private int SelectedMainDivisionId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        countries = await CountryService.GetAllAsync();
+        countryStructures = await CountryStructureService.GetAllAsync();
+        administrativeDivisions = await AdministrativeDivisionService.GetAllAsync();
+
+        await InitializeSelectionsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Detect when parent updates the model or AdministrativeDivisionId changes
+        await InitializeSelectionsAsync();
+    }
+
+    private async Task InitializeSelectionsAsync()
+    {
+        if (Value > 0 && administrativeDivisions.Any())
+        {
+            var selectedAd = administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == Value);
+            if (selectedAd != null)
+            {
+                SelectedCountryId = selectedAd.CountryId;
+
+                // Determine the main division (top-level parent)
+                SelectedMainDivisionId = GetMainParentId(selectedAd);
+
+                // Load main and child divisions
+                mainAdministrativeDivisions = administrativeDivisions
+                    .Where(ad => ad.CountryId == SelectedCountryId && (!ad.ParentId.HasValue || ad.ParentId == 0))
+                    .ToList();
+
+                childrenAdministrativeDivisions = await AdministrativeDivisionCustomService
+                    .GetChildrenAsync(SelectedMainDivisionId, administrativeDivisions.ToList());
+            }
+        }
+    }
+
+    private int GetMainParentId(AdministrativeDivision division)
+    {
+        var current = division;
+        while (current.ParentId.HasValue && current.ParentId > 0)
+        {
+            current = administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == current.ParentId) ?? current;
+        }
+        return current.AdministrativeDivisionId;
+    }
+
+    private async Task OnCountryChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var selectedCountryId))
+        {
+            SelectedCountryId = selectedCountryId;
+            SelectedMainDivisionId = 0;
+
+            mainAdministrativeDivisions = administrativeDivisions
+                .Where(ad => ad.CountryId == selectedCountryId && (!ad.ParentId.HasValue || ad.ParentId == 0))
+                .ToList();
+
+            childrenAdministrativeDivisions = [];
+            await ValueChanged.InvokeAsync(0);
+
+            await OnCountryChanged.InvokeAsync(selectedCountryId);
+        }
+    }
+
+    private async Task OnMainAdmDivChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var selectedAdId))
+        {
+            SelectedMainDivisionId = selectedAdId;
+            childrenAdministrativeDivisions = await AdministrativeDivisionCustomService
+                .GetChildrenAsync(selectedAdId, administrativeDivisions.ToList());
+
+            await ValueChanged.InvokeAsync(0);
+            await OnMainDivisionChanged.InvokeAsync(selectedAdId);
+        }
+    }
+}

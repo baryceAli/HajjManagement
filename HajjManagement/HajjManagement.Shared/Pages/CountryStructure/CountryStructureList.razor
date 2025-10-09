@@ -2,6 +2,7 @@
 @using CoreBusiness
 @using HajjManagement.Shared.Pages.Common
 @using HajjManagement.Shared.Services
+@using HajjManagement.Shared.Utilities
 @inject IGenericAPIService<CountryStructure> CountryStructureService
 
 @inject IGenericAPIService<Country> CountryService
@@ -32,7 +33,7 @@
                         <option value="">Select a country...</option>
                         @foreach (var country in countries)
                         {
-                            <option value="@country.CountryId">@country.Name</option>
+                            <option selected="@(country.CountryId==GlobalData.CurrentCountryId)" value="@country.CountryId">@country.Name</option>
                         }
                     </select>
                 }
@@ -64,7 +65,8 @@
         countries = await CountryService.GetAllAsync(); 
         allCountryStructureList= (await CountryStructureService.GetAllAsync()).ToList();
         countryStructureList = new();// allCountryStructureList;
-
+        countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == GlobalData.CurrentCountryId).ToList();
+        selectedCountry = countries.First(c => c.CountryId == GlobalData.CurrentCountryId);
     }
 
     private void CreateNew()
@@ -73,6 +75,7 @@
     }
     private async Task onCountryChanged(ChangeEventArgs e)
     {
+
         if(int.TryParse(e.Value?.ToString(), out int countryId))
         {
             if(countryId == 0)

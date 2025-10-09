@@ -70,7 +70,7 @@
 @code {
     [Parameter]
     public int? Id { get; set; }
-    private string title = "إضافة الهيكل الإداري";
+    private string title = "إضافة بيانات العقود";
     private Contract? contract = new(); // Field to hold the current AdministrativeDivisionType
     // private IEnumerable<Contract> contractList;
     private List<Hotel> hotelList = new();
@@ -84,7 +84,7 @@
 
         if (Id.HasValue && Id.Value > 0)
         {
-            title = "تعديل الهيكل الإداري";
+            title = "تعديل بيانات العقود";
             contract = await ContractService.GetByIdAsync(Id.Value);
 
             TimeZoneInfo localZone = TimeZoneInfo.Local;
