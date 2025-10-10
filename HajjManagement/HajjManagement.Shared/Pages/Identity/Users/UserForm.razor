@@ -42,17 +42,12 @@
         <EditForm Model="user" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator></DataAnnotationsValidator>
 
-                                 @* ValueExpression="@(() =>user.AdministrativeDivisionId)" *@
-                                 
-            <CountryStructurePage 
-                                 Id="@((int)(Id??0))"
-                                 SelectedCountryId="user.CountryId"
-                                 isDisabled="@((Id.HasValue && Id>0 && user.CountryId>0))"
-                                 IsEditMode="@((Id??0) > 0)"
-                                 @bind-Value="user.AdministrativeDivisionId"
-                                 OnCountryChanged="OnCountryChange"
-                                 OnMainDivisionChanged="()=>{}"
-                                 OnChildDivisionChanged="()=>{}"/>
+            <CascadingDivisionSelect SelectedCountryId="@GlobalData.CurrentCountryId"
+                                     @bind-Value="SelectedDivisionId"
+                                     Disabled="@isDisabled" />
+
+            <p>Selected Division ID: @SelectedDivisionId</p>
+            
 
                                  <!--
             <div class="row mt-3 mx-2">
@@ -206,6 +201,8 @@
 </div>
 
 @code {
+    private int SelectedDivisionId;
+    private bool isDisabled = false;
     [Parameter]
     public int? Id { get; set; }
     private string title = "تسجيل مستخدم جديد";

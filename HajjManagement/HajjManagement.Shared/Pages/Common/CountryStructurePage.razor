@@ -42,30 +42,49 @@
         </div>
     </div>
 
-    <!-- Child Administrative Division -->
-    <div class="col">
-        <div class="mb-3">
-            @if (childrenAdministrativeDivisions?.Any() == true)
-            {
-                <label class="form-label">الوحدات الإدارية</label>
-                <InputSelect TValue="int"
-                             class="form-control" @bind-Value="Value" @onchange="onChildAdmDivChange">
-                    
-                    @foreach (var mad in childrenAdministrativeDivisions)
-                    {
-                        <option value="@mad.AdministrativeDivisionId">
-                            @countryStructures.First(cs => cs.CountryStructureId == mad.CountryStructureId).Name: @mad.Name
-                        </option>
+    @if (childrenCountryStructures != null && childrenCountryStructures.Any())
+    {
+        int index = 0;
+        foreach (var cs in childrenCountryStructures)
+        {
+            <div class="col">
+                <div class="mb-3">
+                    <label for="divisionId" class="form-label">@cs.Name</label>
+
+                    @{
+                        var admDiv1 = childrenAdministrativeDivisions.Where(ad => ad.CountryStructureId == cs.CountryStructureId).ToList();
+
+                        if (admDiv1 != null && admDiv1.Any() && index==countryStructureCount)
+                        {
+
+                            <InputSelect id="country-select" class="form-control" @bind-Value="Value" @onchange="onChildAdmDivChange">
+                                
+                            @foreach (var ad in admDiv1)
+                                {
+                                    <option value="@ad.AdministrativeDivisionId">@ad.Name</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="ValueExpression" />
+                        }
+                        else if (admDiv1 != null && admDiv1.Any())
+                        {
+                            <select id="country-select" class="form-control">
+                                
+                            @foreach (var ad in admDiv1)
+                                {
+                                    <option value="@ad.AdministrativeDivisionId">@ad.Name</option>
+                                }
+                            </select>
+                        }
                     }
-                </InputSelect>
-                <ValidationMessage For="ValueExpression" />
-            }
-            else
-            {
-                
-            }
-        </div>
-    </div>
+                </div>
+            </div>
+
+            index += 1;
+        }
+
+    }
+
 </div>
 
 @code {
@@ -88,9 +107,10 @@
     [Inject] public IAdministrativeDivisionCustomService AdministrativeDivisionCustomService { get; set; } = default!;
     [Inject] public ICountryStructureCustomService CountryStructureCustomService { get; set; } = default!;
     private IEnumerable<Country> countries = [];
+
     private IEnumerable<CountryStructure> countryStructures = [];
     private IEnumerable<CountryStructure> childrenCountryStructures = [];
-
+    private int countryStructureCount = 0;
     private IEnumerable<AdministrativeDivision> administrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> mainAdministrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> childrenAdministrativeDivisions = [];
@@ -117,29 +137,48 @@
 
     private async Task InitializeSelectionsAsync()
     {
-        // if ((Value > 0 || SelectedCountryId > 0) && administrativeDivisions.Any())
-        if ((SelectedCountryId > 0) && administrativeDivisions.Any())
+        // Ensure required data is loaded
+        if (SelectedCountryId <= 0 || !administrativeDivisions.Any())
+            return;
+
+        // Try to determine the selected administrative division
+        var selectedAd = Value > 0
+            ? administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == Value)
+            : administrativeDivisions.FirstOrDefault(a => a.CountryId == SelectedCountryId);
+
+        if (selectedAd == null)
+            return;
+
+        // Set current country
+        SelectedCountryId = selectedAd.CountryId;
+
+        // Determine the top-level (main) division
+        SelectedMainDivisionId = GetMainParentId(selectedAd);
+
+        // Load all main administrative divisions for the country
+        mainAdministrativeDivisions = administrativeDivisions
+            .Where(ad => ad.CountryId == SelectedCountryId && (ad.ParentId is null or 0))
+            .ToList();
+
+        // Load children for the selected main division
+        childrenAdministrativeDivisions = await AdministrativeDivisionCustomService
+            .GetChildrenAsync(SelectedMainDivisionId, administrativeDivisions.ToList());
+
+        // Load country structure hierarchy for this country
+        var countryStructure = countryStructures.FirstOrDefault(cs => cs.CountryId == SelectedCountryId);
+        if (countryStructure != null)
         {
-            var selectedAd =Value>0? 
-                                    administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == Value)
-                                    :administrativeDivisions.FirstOrDefault(a=>a.CountryId==SelectedCountryId);
-            if (selectedAd != null)
-            {
-                SelectedCountryId = selectedAd.CountryId;
+            childrenCountryStructures = await CountryStructureCustomService
+                .GetChildrenAsync(countryStructure.CountryStructureId, countryStructures.ToList());
+        }
 
-                // Determine the main division (top-level parent)
-                SelectedMainDivisionId = GetMainParentId(selectedAd);
+        // Count structures for this country
+        countryStructureCount = countryStructures.Count(cs => cs.CountryId == SelectedCountryId);
 
-                // Load main and child divisions
-                mainAdministrativeDivisions = administrativeDivisions
-                    .Where(ad => ad.CountryId == SelectedCountryId && (!ad.ParentId.HasValue || ad.ParentId == 0))
-                    .ToList();
-
-                childrenAdministrativeDivisions = await AdministrativeDivisionCustomService
-                                                        .GetChildrenAsync(SelectedMainDivisionId, administrativeDivisions.ToList());
-                childrenCountryStructures = await CountryStructureCustomService
-                                                        .GetChildrenAsync(countryStructures.First(cs => cs.CountryId == SelectedCountryId).CountryStructureId, countryStructures.ToList());
-            }
+        // Restore previously selected child division if applicable
+        if (Value > 0 && selectedAd.AdministrativeDivisionId == Value)
+        {
+            SelectedChildDivisionId = selectedAd.AdministrativeDivisionId;
         }
     }
 
@@ -185,11 +224,42 @@
     }
     private async Task onChildAdmDivChange(ChangeEventArgs e)
     {
-        if(int.TryParse(e.Value?.ToString(),out var selectedAdmDivId))
+        if (int.TryParse(e.Value?.ToString(), out var selectedAdmDivId))
         {
             SelectedChildDivisionId = selectedAdmDivId;
+            Value = selectedAdmDivId; // ✅ keep in sync locally
+
             await ValueChanged.InvokeAsync(selectedAdmDivId);
             await OnChildDivisionChanged.InvokeAsync(selectedAdmDivId);
         }
     }
 }
+
+
+
+
+<!-- Child Administrative Division -->
+<!--
+<div class="col">
+    <div class="mb-3">
+@if (childrenAdministrativeDivisions?.Any() == true)
+{
+                        <label class="form-label">الوحدات الإدارية</label>
+                        <InputSelect TValue="int"
+                                     class="form-control" @bind-Value="Value" @onchange="onChildAdmDivChange">
+
+                            @foreach (var mad in childrenAdministrativeDivisions)
+                            {
+                                            <option value="@mad.AdministrativeDivisionId">
+                                                @countryStructures.First(cs => cs.CountryStructureId == mad.CountryStructureId).Name: @mad.Name
+                                            </option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="ValueExpression" />
+}
+else
+{
+
+}
+    </div>
+</div>-->
