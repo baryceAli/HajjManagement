@@ -76,7 +76,7 @@
     }
     private async Task HandleLogin()
     {
-        var loginResponse = await userService.LoginAsync(login);
+        var loginResponse = await userService.LoginAsync(login,"v1","user");
 
         if (loginResponse != null)
         {

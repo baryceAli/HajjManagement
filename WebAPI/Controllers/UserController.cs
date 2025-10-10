@@ -73,9 +73,9 @@ namespace WebAPI.Controllers
             {
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-                UserName = model.LoginCode,
+                //UserName = model.LoginCode,
                 Email = model.Email,
-                PhoneNumber = model.Phone,
+                PhoneNumber = model.PhoneNumber,
                 Address = model.Address,
                 ProfilePictureUrl = model.ProfilePictureUrl,
                 CountryId = model.CountryId,
@@ -100,6 +100,7 @@ namespace WebAPI.Controllers
         
         [HttpPost]
         [Route("login")]
+        [MapToApiVersion("1.0")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
@@ -129,6 +130,39 @@ namespace WebAPI.Controllers
             });
             //return Ok(new { Message = "Login successful", UserId = user.Id, Token = token });
         }
+        [HttpPost]
+        [Route("login")]
+        [MapToApiVersion("2.0")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login2([FromBody] LoginDto model)
+        {
+            var user = await userManager.FindByNameAsync(model.LoginCode);
+            if (user == null)
+            {
+                return Unauthorized("Invalid login credentials.");
+            }
+            var passwordCheck = await userManager.CheckPasswordAsync(user, model.Password);
+            if (!passwordCheck)
+            {
+                return Unauthorized("Invalid login credentials.");
+            }
+            // Optionally, generate a JWT token or session here
+            string token = await authService.GenerateJwtToken(user); // Update to call GenerateJwtToken from authService
+
+            var roles = await userManager.GetRolesAsync(user);
+
+            return Ok(new AuthResponse
+            {
+                Message = "Login successful",
+                UserId = user.Id.ToString(),
+                User = user,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
+                Roles = roles.ToList()
+            });
+            //return Ok(new { Message = "Login successful", UserId = user.Id, Token = token });
+        }
+
         [HttpPost]
         [Route("resetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)

@@ -36,5 +36,6 @@ namespace CoreBusiness.Dtos
 
         [Range(1, int.MaxValue, ErrorMessage = "الرجاء ادخال الوحدة الإدارية")]
         public int AdministrativeDivisionId { get; set; }
+        public bool isProfileCompleted { get; set; } = false;
     }
 }
