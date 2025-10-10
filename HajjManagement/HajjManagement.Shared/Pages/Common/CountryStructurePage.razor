@@ -86,11 +86,11 @@
     [Inject] public IGenericAPIService<CountryStructure> CountryStructureService { get; set; } = default!;
     [Inject] public IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService { get; set; } = default!;
     [Inject] public IAdministrativeDivisionCustomService AdministrativeDivisionCustomService { get; set; } = default!;
-
+    [Inject] public ICountryStructureCustomService CountryStructureCustomService { get; set; } = default!;
     private IEnumerable<Country> countries = [];
-    // private IEnumerable<CountryStructure> allCountryStructures = [];
     private IEnumerable<CountryStructure> countryStructures = [];
-    // private IEnumerable<AdministrativeDivision> allAdministrativeDivisions = [];
+    private IEnumerable<CountryStructure> childrenCountryStructures = [];
+
     private IEnumerable<AdministrativeDivision> administrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> mainAdministrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> childrenAdministrativeDivisions = [];
@@ -118,7 +118,7 @@
     private async Task InitializeSelectionsAsync()
     {
         // if ((Value > 0 || SelectedCountryId > 0) && administrativeDivisions.Any())
-            if ((SelectedCountryId > 0) && administrativeDivisions.Any())
+        if ((SelectedCountryId > 0) && administrativeDivisions.Any())
         {
             var selectedAd =Value>0? 
                                     administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == Value)
@@ -136,7 +136,9 @@
                     .ToList();
 
                 childrenAdministrativeDivisions = await AdministrativeDivisionCustomService
-                    .GetChildrenAsync(SelectedMainDivisionId, administrativeDivisions.ToList());
+                                                        .GetChildrenAsync(SelectedMainDivisionId, administrativeDivisions.ToList());
+                childrenCountryStructures = await CountryStructureCustomService
+                                                        .GetChildrenAsync(countryStructures.First(cs => cs.CountryId == SelectedCountryId).CountryStructureId, countryStructures.ToList());
             }
         }
     }

@@ -22,12 +22,14 @@ namespace WebAPI.Controllers
         }
 
         [HttpGet]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get()
         {
             var contract = await service.GetAllAsync();
             return Ok(contract);
         }
         [HttpGet("{id}")]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get(int id)
         {
             var contract = await service.GetByIdAsync(id);
@@ -38,6 +40,7 @@ namespace WebAPI.Controllers
             return Ok(contract);
         }
         [HttpPost]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Create([FromBody] CoreBusiness.Contract contract)
         {
             var created = await service.AddAsync(contract);
@@ -48,6 +51,7 @@ namespace WebAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id = created.ContractId }, created);
         }
         [HttpPut]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Update([FromBody] CoreBusiness.Contract contract)
         {
             var updated = await service.UpdateAsync(contract);
@@ -58,6 +62,7 @@ namespace WebAPI.Controllers
             return Ok(updated);
         }
         [HttpDelete("{id}")]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await service.DeleteAsync(id);

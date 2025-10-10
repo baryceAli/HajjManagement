@@ -81,7 +81,9 @@
     override protected async Task OnInitializedAsync()
     {
         hotelList = (await HotelService.GetAllAsync()).ToList();
-
+        
+        contract.Start = DateTime.Now;
+        contract.End = DateTime.Now;
         if (Id.HasValue && Id.Value > 0)
         {
             title = "تعديل بيانات العقود";
@@ -101,8 +103,7 @@
         }
         else
         {
-            contract.Start = DateTime.Now;
-            contract.End = DateTime.Now;
+            
         }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
