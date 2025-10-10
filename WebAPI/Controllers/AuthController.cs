@@ -245,12 +245,6 @@ namespace WebAPI.Controllers
 
 
             var errorHtml = @"<html>
-                        <body style='font-family:Arial;text-align:center;padding:50px'>
-                            <h1 style='color:red'>❌ Email Confirmation Failed</h1>
-                            <p>Please make sure the link is correct or try again.</p>
-                        </body>
-                    </html>";
-             errorHtml = @"<html>
                                             <head>
                                                 <meta charset='UTF-8'>
                                                 <meta name='viewport' content='width=device-width, initial-scale=1.0'>

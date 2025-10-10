@@ -13,7 +13,7 @@ namespace CoreBusiness.Dtos
         [EmailAddress(ErrorMessage = "البريد الإلكتروني غير صالح")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "يجب إدخال رقم الهاتف")]
+        [Required(ErrorMessage = "الرجاء إدخال رقم الهاتف")]
         //[Phone(ErrorMessage = "رقم الهاتف غير صالح")]
         public string PhoneNumber { get; set; } = string.Empty;
 

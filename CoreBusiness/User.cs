@@ -39,6 +39,9 @@ namespace CoreBusiness
         
         public string? PhoneOtp { get; set; }
         public DateTime? PhoneOtpExpiry { get; set; }
+
+        [Required]
+        public bool isProfileCompleted { get; set; } = false;
     }
     
 }

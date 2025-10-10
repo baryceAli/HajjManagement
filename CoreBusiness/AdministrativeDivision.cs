@@ -18,10 +18,12 @@ namespace CoreBusiness
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        [Required(ErrorMessage = "Country is required")]
+        //[Required(ErrorMessage = "Country is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "الرجاء ادخال الدولة")]
         public int CountryId { get; set; }
 
-        [Required(ErrorMessage =" Country Structure is required")]
+        //[Required(ErrorMessage =" Country Structure is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "الرجاء ادخال الهيكل الإداري")]
         public int CountryStructureId { get; set; }
 
     }

@@ -12,6 +12,9 @@ namespace CoreBusiness
         public int CountryStructureId { get; set; }
         public string Name { get; set; }
         public int? ParentCountryStructureId { get; set; }
+
+
+        [Range(1, int.MaxValue, ErrorMessage = "الرجاء ادخال البلد")]
         public int CountryId { get; set; }
     }
 }

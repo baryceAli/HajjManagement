@@ -14,6 +14,8 @@ namespace HajjManagement.Shared.Services.Custom
         {
             return new User()
             {
+                PhoneNumber = userDto.PhoneNumber,
+                Email = userDto.Email,
                 FirstName = userDto.FirstName,
                 LastName = userDto.LastName,
                 Passport = userDto.Passport,
@@ -32,6 +34,8 @@ namespace HajjManagement.Shared.Services.Custom
         {
             return new UserDto()
             {
+                PhoneNumber = user.PhoneNumber,
+                Email=user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Passport = user.Passport,

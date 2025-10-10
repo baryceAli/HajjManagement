@@ -12,28 +12,43 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 <div class='container d-flex justify-content-center align-items-center vh-100'>
-    <div class='card shadow' style='max-width: 500px; width:100%;'>
-        <div class='card-header'>
-            <h3>Login</h3>
-        </div>
-        <div class='card-body'>
-            <EditForm Model="@login" OnValidSubmit="HandleLogin">
+            <EditForm Model="@login" OnValidSubmit="HandleLogin" class="p-4 shadow rounded bg-light">
+                <h3 class="text-center mb-4">Login</h3>
+
                 <div class="mb-3">
                     <label for="userName" class="form-label">User name</label>
                     <input type="text" class="form-control" @bind="login.LoginCode" id="userName" placeholder="Enter user name" required>
                 </div>
+
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" class="form-control" @bind="login.Password" id="password" placeholder="Password" required>
                 </div>
+
                 <div class="mb-3 form-check">
                     <input type="checkbox" class="form-check-input" id="rememberMe">
                     <label class="form-check-label" for="rememberMe">Remember me</label>
                 </div>
+
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary">Login</button>
                 </div>
+
+                <div class="text-center mt-3">
+                    <a href="/forgot-password" class="text-decoration-none">Forgot your password?</a>
+                </div>
+
+                <div class="text-center mt-2">
+                    <span>Don’t have an account?</span>
+                    <a href="/register" class="text-decoration-none">Create one</a>
+                </div>
             </EditForm>
+    @* <div class='card shadow' style='max-width: 500px; width:100%;'>
+        <div class='card-header'>
+            <h3>Login</h3>
+        </div>
+        <div class='card-body'>
+
 
         </div>
         <div class="card-footer">
@@ -41,18 +56,22 @@
                 <small><a href="#">Forgot password?</a></small>
             </div>
         </div>
-    </div>
+    </div> *@
 </div>
 
 @code {
     LoginDto login = new LoginDto();
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         login = new LoginDto
         {
             LoginCode = "MainSuperAdmin",
             Password = "Admin@123"
-        }; 
+        };
+        // base.OnInitialized();
+    }
+    protected override async Task OnInitializedAsync()
+    {
         await HandleLogin();
     }
     private async Task HandleLogin()

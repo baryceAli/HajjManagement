@@ -58,6 +58,14 @@ namespace WebAPI.Controllers
             return Ok(users);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+
+            var user = await userManager.FindByIdAsync(id.ToString());
+            return Ok(user);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {

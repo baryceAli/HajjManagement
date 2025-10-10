@@ -9,7 +9,7 @@
             <label class="form-label">البلد</label>
             @if (countries?.Any() == true)
             {
-                <select class="form-control" @onchange="OnCountryChange">
+                <select class="form-control" disabled="@isDisabled" @onchange="OnCountryChange">
                     <option value="">Select a country...</option>
                     @foreach (var country in countries)
                     {
@@ -49,9 +49,8 @@
             {
                 <label class="form-label">الوحدات الإدارية</label>
                 <InputSelect TValue="int"
-                             class="form-control"
-                             @bind-Value="Value">
-                    <option value="">اختر الوحدة الإدارية )*(</option>
+                             class="form-control" @bind-Value="Value" @onchange="onChildAdmDivChange">
+                    
                     @foreach (var mad in childrenAdministrativeDivisions)
                     {
                         <option value="@mad.AdministrativeDivisionId">
@@ -60,6 +59,10 @@
                     }
                 </InputSelect>
                 <ValidationMessage For="ValueExpression" />
+            }
+            else
+            {
+                
             }
         </div>
     </div>
@@ -72,10 +75,12 @@
     [Parameter] public int Value { get; set; }
     [Parameter] public EventCallback<int> ValueChanged { get; set; }
     [Parameter] public bool IsEditMode { get; set; } = false;
-
+    [Parameter] public int SelectedCountryId { get; set; }
+    [Parameter] public bool isDisabled { get; set; }
     // 🔥 Callbacks for parent
     [Parameter] public EventCallback<int> OnCountryChanged { get; set; }
     [Parameter] public EventCallback<int> OnMainDivisionChanged { get; set; }
+    [Parameter] public EventCallback<int> OnChildDivisionChanged { get; set; }
 
     [Inject] public IGenericAPIService<Country> CountryService { get; set; } = default!;
     [Inject] public IGenericAPIService<CountryStructure> CountryStructureService { get; set; } = default!;
@@ -83,20 +88,24 @@
     [Inject] public IAdministrativeDivisionCustomService AdministrativeDivisionCustomService { get; set; } = default!;
 
     private IEnumerable<Country> countries = [];
+    // private IEnumerable<CountryStructure> allCountryStructures = [];
     private IEnumerable<CountryStructure> countryStructures = [];
+    // private IEnumerable<AdministrativeDivision> allAdministrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> administrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> mainAdministrativeDivisions = [];
     private IEnumerable<AdministrativeDivision> childrenAdministrativeDivisions = [];
 
-    private int SelectedCountryId;
+    // private int SelectedCountryId;
     private int SelectedMainDivisionId;
+    private int SelectedChildDivisionId;
 
     protected override async Task OnInitializedAsync()
     {
         countries = await CountryService.GetAllAsync();
         countryStructures = await CountryStructureService.GetAllAsync();
         administrativeDivisions = await AdministrativeDivisionService.GetAllAsync();
-
+        // var adm = administrativeDivisions.FirstOrDefault(ad => ad.CountryId == SelectedCountryId);
+        // Value = Value == 0 ? adm?.AdministrativeDivisionId??0 : Value;
         await InitializeSelectionsAsync();
     }
 
@@ -108,9 +117,12 @@
 
     private async Task InitializeSelectionsAsync()
     {
-        if (Value > 0 && administrativeDivisions.Any())
+        // if ((Value > 0 || SelectedCountryId > 0) && administrativeDivisions.Any())
+            if ((SelectedCountryId > 0) && administrativeDivisions.Any())
         {
-            var selectedAd = administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == Value);
+            var selectedAd =Value>0? 
+                                    administrativeDivisions.FirstOrDefault(a => a.AdministrativeDivisionId == Value)
+                                    :administrativeDivisions.FirstOrDefault(a=>a.CountryId==SelectedCountryId);
             if (selectedAd != null)
             {
                 SelectedCountryId = selectedAd.CountryId;
@@ -151,7 +163,7 @@
                 .ToList();
 
             childrenAdministrativeDivisions = [];
-            await ValueChanged.InvokeAsync(0);
+            await ValueChanged.InvokeAsync(selectedCountryId);
 
             await OnCountryChanged.InvokeAsync(selectedCountryId);
         }
@@ -165,8 +177,17 @@
             childrenAdministrativeDivisions = await AdministrativeDivisionCustomService
                 .GetChildrenAsync(selectedAdId, administrativeDivisions.ToList());
 
-            await ValueChanged.InvokeAsync(0);
+            await ValueChanged.InvokeAsync(selectedAdId);
             await OnMainDivisionChanged.InvokeAsync(selectedAdId);
+        }
+    }
+    private async Task onChildAdmDivChange(ChangeEventArgs e)
+    {
+        if(int.TryParse(e.Value?.ToString(),out var selectedAdmDivId))
+        {
+            SelectedChildDivisionId = selectedAdmDivId;
+            await ValueChanged.InvokeAsync(selectedAdmDivId);
+            await OnChildDivisionChanged.InvokeAsync(selectedAdmDivId);
         }
     }
 }
