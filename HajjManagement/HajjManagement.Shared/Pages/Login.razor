@@ -9,7 +9,7 @@
 
 @inject IGenericAPIService<LoginDto> userService
 @inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthStateProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <div class="card shadow-lg border-0 w-100" style="max-width: 600px;">
@@ -51,7 +51,7 @@
 
                 <div class="text-center">
                     <span>Don’t have an account?</span>
-                    <a href="/register" class="text-decoration-none ms-1">Create one</a>
+                    <a href="/User/Form" class="text-decoration-none ms-1">Create one</a>
                 </div>
             </EditForm>
         </div>
@@ -87,7 +87,7 @@
             GlobalData.Token = loginResponse.Token;
             GlobalData.User = loginResponse.User;
             GlobalData.CurrentCountryId = GlobalData.User.CountryId;
-            ((CustomAuthStateProvider)AuthStateProvider)
+            ((CustomAuthStateProvider)AuthenticationStateProvider)
                 .NotifyUserAuthentication(loginResponse.Token);
 
             // NavigationManager.NavigateTo("/");

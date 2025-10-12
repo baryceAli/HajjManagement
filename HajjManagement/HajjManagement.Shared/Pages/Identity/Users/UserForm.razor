@@ -3,15 +3,23 @@
 
 @using CoreBusiness
 @using CoreBusiness.Dtos
+@using HajjManagement.Shared.Pages
+@using HajjManagement.Shared.Layout
 @using HajjManagement.Shared.Services
 @using HajjManagement.Shared.Services.Custom
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IGenericAPIService<User> UserService
 @inject IGenericAPIService<Country> CountryService
 @inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
 @inject IGenericAPIService<CountryStructure> CountryStructureService
 @inject IAdministrativeDivisionCustomService AdministrativeDivisionCustomService
 @inject IUserCustomService UserCustomService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+
+<LayoutView Layout="@layoutType">
+    <ChildContent>
+
 <div class="card show" dir="rtl">
     <div class="card-header">
         <div class="row d-flex justify-content-between">
@@ -40,10 +48,15 @@
         <EditForm Model="user" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator></DataAnnotationsValidator>
 
-            <CascadingDivisionSelect SelectedCountryId="@GlobalData.CurrentCountryId"
-                                     @bind-Value="SelectedDivisionId"
+                    @if(Id.HasValue && Id > 0)
+                    {
+                        
+                    <CascadingDivisionSelect SelectedCountryId="@GlobalData.CurrentCountryId"
+                                     @bind-Value="user.AdministrativeDivisionId"
                                      Disabled="@isDisabled" />
+                    }
 
+                                     @* ValueChanged="OnAdminstrativeDivisionChange" *@
 
             <div class="row mt-3 mx-2">
                 <div class="col">
@@ -127,6 +140,8 @@
 
 </div>
 
+    </ChildContent>
+</LayoutView>
 @code {
     private int SelectedDivisionId;
     private bool isDisabled = false;
@@ -135,17 +150,8 @@
     private string title = "تسجيل مستخدم جديد";
     private User? userDB = new();
     private UserDto? user = new();
-    // private IEnumerable<Country> countries;
-    // private Country? currentCountry = new();
-    // private IEnumerable<CountryStructure> allCountryStructures;
-    // private IEnumerable<CountryStructure> countryStructures;
-    // private IEnumerable<CountryStructure> childCountryStructures;
-    // private CountryStructure? currentCountryStructure=new();
-    // private IEnumerable<AdministrativeDivision> administrativeDivisions;
-    // private IEnumerable<AdministrativeDivision> mainAdministrativeDivisions;
-    // private IEnumerable<AdministrativeDivision> childrenAdministrativeDivisions;
-    // private AdministrativeDivision? currentMainAd = new();
-
+    private bool isAdmin = false;
+    private Type layoutType = typeof(LoginLayout);
     private ElementReference? fileInput;
     [Inject] IJSRuntime JS { get; set; } = default!;
     private async Task TriggerFileUpload()
@@ -154,11 +160,20 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        // countries = await CountryService.GetAllAsync();
-        user.CountryId = GlobalData.CurrentCountryId;
-        // allCountryStructures = await CountryStructureService.GetAllAsync();
-        // countryStructures = allCountryStructures.Where(cs => cs.CountryId == GlobalData.CurrentCountryId);
-        // administrativeDivisions = await AdministrativeDivisionService.GetAllAsync();
+        var authState =await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authUser = authState.User;
+        isAdmin = authUser.Identity!.IsAuthenticated && (authUser.IsInRole(CoreBusiness.Utils.RoleNames.Admin) ||
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.MainAdmin) ||
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.SuperAdmin) ||
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanyAdmin) ||
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.MainSuperAdmin) ||
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanySuperAdmin)) 
+                    ? true : false;
+
+            layoutType = isAdmin ? typeof(MainLayout) : typeof(LoginLayout);
+        
+            user.CountryId = GlobalData.CurrentCountryId;
+        
         if (Id > 0)
         {
             title = "تعديل بيانات مستخدم";
@@ -187,7 +202,7 @@
             user.CountryId = e;
         
     }
-    private async Task OnMainAdmDivChange(ChangeEventArgs e)
+    private void OnAdminstrativeDivisionChange(int e)
     {
         
     }

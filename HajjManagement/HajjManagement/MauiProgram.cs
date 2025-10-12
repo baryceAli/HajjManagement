@@ -1,6 +1,9 @@
 ﻿using CoreBusiness;
 using HajjManagement.Services;
 using HajjManagement.Shared.Services;
+using HajjManagement.Shared.Services.Custom;
+using HajjManagement.Shared.Utilities;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -29,53 +32,19 @@ namespace HajjManagement
                 .Build();
 
             var APIBaseUri = config.GetValue<string>("APIBaseUri") ?? "https://localhost:7154/";
-
-            builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivision>, GenericAPIService<AdministrativeDivision>>(client =>
+            builder.Services.AddHttpClient("GenericApiClient", client =>
             {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivision/");
+                client.BaseAddress = new Uri(APIBaseUri);
             });
 
-            //builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivisionType>, GenericAPIService<AdministrativeDivisionType>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/AdministrativeDivisionType/");
-            //});
+            builder.Services.AddScoped(typeof(IGenericAPIService<>), typeof(GenericAPIService<>));
 
 
-            builder.Services.AddHttpClient<IGenericAPIService<Bag>, GenericAPIService<Bag>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/bag/");
-            });
-
-
-            builder.Services.AddHttpClient<IGenericAPIService<Contract>, GenericAPIService<Contract>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/Contract/");
-            });
-
-
-            builder.Services.AddHttpClient<IGenericAPIService<Country>, GenericAPIService<Country>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/Country/");
-            });
-
-            builder.Services.AddHttpClient<IGenericAPIService<Guest>, GenericAPIService<Guest>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/Guest/");
-            });
-
-
-            builder.Services.AddHttpClient<IGenericAPIService<Hotel>, GenericAPIService<Hotel>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/Hotel/");
-            });
-
-
-            builder.Services.AddHttpClient<IGenericAPIService<Log>, GenericAPIService<Log>>(client =>
-            {
-                client.BaseAddress = new Uri($"{APIBaseUri}/api/Log/");
-            });
-
-
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+            builder.Services.AddScoped<ICountryStructureCustomService, CountryStructureCustomService>();
+            builder.Services.AddScoped<IAdministrativeDivisionCustomService, AdministrativeDivisionCustomService>();
+            builder.Services.AddScoped<IUserCustomService, UserCustomService>();
             // Add device-specific services used by the HajjManagement.Shared project
             builder.Services.AddSingleton<IFormFactor, FormFactor>();
 

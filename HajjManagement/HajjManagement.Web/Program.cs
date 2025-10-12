@@ -27,71 +27,7 @@ namespace HajjManagement
             builder.Services.AddScoped(typeof(IGenericAPIService<>), typeof(GenericAPIService<>));
 
 
-            //var APIBaseUri = builder.Configuration.GetValue<string>("APIBaseUri") ?? "https://localhost:7154/";
-
-            //builder.Services.AddHttpClient<IGenericAPIService<AdministrativeDivision>, GenericAPIService<AdministrativeDivision>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/AdministrativeDivision/");
-            //});
-
-            //builder.Services.AddHttpClient<IGenericAPIService<CountryStructure>, GenericAPIService<CountryStructure>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/CountryStructure/");
-            //});
-
-
-            //builder.Services.AddHttpClient<IGenericAPIService<Bag>, GenericAPIService<Bag>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/bag/");
-            //});
-
-
-            //builder.Services.AddHttpClient<IGenericAPIService<Contract>, GenericAPIService<Contract>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/Contract/");
-            //});
-
-
-            //builder.Services.AddHttpClient<IGenericAPIService<Country>, GenericAPIService<Country>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/Country/");
-            //});
-
-            //builder.Services.AddHttpClient<IGenericAPIService<Guest>, GenericAPIService<Guest>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/Guest/");
-            //});
-
-
-            //builder.Services.AddHttpClient<IGenericAPIService<Hotel>, GenericAPIService<Hotel>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/Hotel/");
-            //});
-
-
-            //builder.Services.AddHttpClient<IGenericAPIService<Log>, GenericAPIService<Log>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/Log/");
-            //});
-
-            //builder.Services.AddHttpClient<IGenericAPIService<User>, GenericAPIService<User>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/User/");
-            //});
-            //builder.Services.AddHttpClient<IGenericAPIService<Role>, GenericAPIService<Role>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/Role/");
-            //});
-            //builder.Services.AddHttpClient<IGenericAPIService<LoginDto>, GenericAPIService<LoginDto>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/v1/User/login/");
-            //});
-
-
-            //builder.Services.AddHttpClient<IGenericAPIService<TempUserRole>, GenericAPIService<TempUserRole>>(client =>
-            //{
-            //    client.BaseAddress = new Uri($"{APIBaseUri}/api/UserRole/");
-            //});
+            
 
 
             // Add services to the container.

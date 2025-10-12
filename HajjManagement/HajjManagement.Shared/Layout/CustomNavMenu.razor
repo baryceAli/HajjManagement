@@ -1,0 +1,105 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<nav class="navbar navbar-dark shadow-sm d-lg-flex flex-column p-0 position-relative">
+    <div class="container-fluid d-flex justify-content-between align-items-center p-2">
+        <a class="navbar-brand fw-semibold text-white" href="">HajjManagement</a>
+
+        <!-- Hamburger button for small screens -->
+        <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="collapse d-lg-block sidebar w-100" id="sidebarMenu">
+        <AuthorizeView Roles="Supervisor">
+            <Authorized>
+                <nav class="nav flex-column p-2">
+                    <!-- Home -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="" Match="NavLinkMatch.All">
+                            <i class="bi bi-house-door-fill text-white"></i>
+                            <span class="text-white">الرئيسية</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Countries -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Country/List">
+                            <i class="bi bi-flag text-white"></i>
+                            <span class="text-white">الدول</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Administrative Structure -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="CountryStructure/List">
+                            <i class="bi bi-diagram-3 text-white"></i>
+                            <span class="text-white">مسميات الهيكل الإداري</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Administrative Division -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="AdministrativeDivision/List">
+                            <i class="bi bi-diagram-3-fill text-white"></i>
+                            <span class="text-white">الهيكل الإداري</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Bag -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="bag/List">
+                            <i class="bi bi-briefcase-fill text-white"></i>
+                            <span class="text-white">الحقيبة</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Contracts -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Contract/List">
+                            <i class="bi bi-file-earmark-text-fill text-white"></i>
+                            <span class="text-white">العقود</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Guests -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Guest/List">
+                            <i class="bi bi-person-lines-fill text-white"></i>
+                            <span class="text-white">الزوار</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- Hotels -->
+                    <div class="nav-item">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Hotel/List">
+                            <i class="bi bi-building text-white"></i>
+                            <span class="text-white">الفنادق</span>
+                        </NavLink>
+                    </div>
+
+                    <!-- User Management -->
+                    <AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
+                        <Authorized Context="cntxt">
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="User/List">
+                                    <i class="bi bi-people-fill text-white"></i>
+                                    <span class="text-white">إدارة المستخدمين</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+
+                    <!-- Change Password -->
+                    <div class="nav-item mt-2 border-top pt-2">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="User/ChangePassword">
+                            <i class="bi bi-key-fill text-white"></i>
+                            <span class="text-white">تغيير كلمة المرور</span>
+                        </NavLink>
+                    </div>
+                </nav>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</nav>

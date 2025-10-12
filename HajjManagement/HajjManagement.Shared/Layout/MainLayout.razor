@@ -2,12 +2,16 @@
 
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
+        @* <NavMenu /> *@
+        <CustomNavMenu/>
     </div>
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            @if (GlobalData.User != null)
+            {
+                <span class="text-primary">مرحبا, @($"{GlobalData.User.FirstName} {GlobalData.User.LastName}")!</span>
+            }
         </div>
 
         <article class="content px-4">

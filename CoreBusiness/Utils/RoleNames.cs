@@ -1,6 +1,6 @@
 ﻿using CoreBusiness;
 
-namespace Infrastructure
+namespace CoreBusiness.Utils
 {
     public static class RoleNames
     {
@@ -14,6 +14,7 @@ namespace Infrastructure
         public const string Admin = "Admin";
         public const string DataEntry = "DataEntry";
         public const string Supervisor = "Supervisor";
+        public const string Guest = "Guest";
 
     }
 }

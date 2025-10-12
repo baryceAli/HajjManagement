@@ -1,7 +1,9 @@
 ﻿@page "/"
 @using HajjManagement.Shared.Services
 @using HajjManagement.Shared.Utilities
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IFormFactor FormFactor
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 <PageTitle>Home</PageTitle>
 
@@ -16,14 +18,15 @@ Welcome to your new app running on <em>@factor</em> using <em>@platform</em>.
 
     protected override void OnInitialized()
     {
+        var authState= AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
+        var claims = authState.User.IsInRole(CoreBusiness.Utils.RoleNames.MainSuperAdmin);
         // base.OnInitialized();
-        if(GlobalData.User == null )
+        if(! authState.User.Identity.IsAuthenticated)
         {
             // Redirect to login page if user is not authenticated
             NavigationManager.NavigateTo("Login", true);
             return;
         }
     }
-    
 
 }
