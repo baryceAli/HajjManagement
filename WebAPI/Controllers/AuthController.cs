@@ -23,12 +23,14 @@ namespace WebAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IEmailSender _emailSender;
         private readonly AuthService _authService; // optional JWT service
+        private readonly IConfiguration configuration;
 
-        public AuthController(UserManager<User> userManager, IEmailSender emailSender, AuthService authService)
+        public AuthController(UserManager<User> userManager, IEmailSender emailSender, AuthService authService, IConfiguration configuration)
         {
             _userManager = userManager;
             _emailSender = emailSender;
             _authService = authService;
+            this.configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -149,10 +151,25 @@ namespace WebAPI.Controllers
             var result = await _userManager.CreateAsync(user, GlobalData.GenerateRandomPassword(8));
             if (!result.Succeeded) return BadRequest(result.Errors);
 
+
+
+
+            // 2️⃣ Build reset page link
+            //var websiteUrl = configuration["HajjManagement:WebSiteURL"];  // e.g., https://localhost:7273/
+            //var confirmEmailPath = configuration["HajjManagement:ConfirmEmailURL"]; // e.g., User/ResetPassword/
+
+            // Trim trailing slashes to avoid double slashes
+            //websiteUrl = websiteUrl?.TrimEnd('/');
+            //confirmEmailPath = confirmEmailPath?.Trim('/');
+
+            //var resetUrl = $"{websiteUrl}/{resetPasswordPath}/{user.Email}/{encodedToken}";
+
             // 1️⃣ Generate Email Confirmation Token
             var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedEmailToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(emailToken));
             var emailConfirmUrl = $"{Request.Scheme}://{Request.Host}/api/v1/auth/confirm-email?userId={user.Id}&token={encodedEmailToken}";
+            //emailConfirmUrl= $"{websiteUrl}/{confirmEmailPath}/{user.Id}/{encodedEmailToken}";
+
 
             var emailBody = @$"
                             <html>
@@ -202,7 +219,10 @@ namespace WebAPI.Controllers
                                     <p>Hello <strong>{user.UserName}</strong>,</p>
                                     <p>Thank you for registering. Please confirm your email address by clicking the button below:</p>
                                     <p style='text-align:center;'>
-                                        <a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}' class='button'>Confirm Email</a>
+                                        <a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}'
+                                           style='display:inline-block; padding:12px 24px; margin-top:20px; background-color:#28a745; color:#ffffff !important; text-decoration:none; border-radius:5px; font-weight:bold;'>
+                                           Confirm Email
+                                        </a>
                                     </p>
                                     <p>If the button doesn’t work, you can also copy and paste this link into your browser:</p>
                                     <p><a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}'>{HtmlEncoder.Default.Encode(emailConfirmUrl)}</a></p>
@@ -212,6 +232,8 @@ namespace WebAPI.Controllers
                                 </div>
                             </body>
                             </html>";
+            
+            
             await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
 
             // 2️⃣ Generate Phone OTP
@@ -374,6 +396,6 @@ namespace WebAPI.Controllers
             return Content(errorHtml, "text/html");
         }
     }
-    public record RegisterRequest(string Email, string Password,int countryId, string PhoneNumber);
-    public record PhoneOtpRequest(int UserId, string Otp);
+    public record RegisterRequest(string Email, string Password, int countryId, string PhoneNumber);
+
 }

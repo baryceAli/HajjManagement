@@ -15,7 +15,7 @@
         <label class="form-label">البلد</label>
         @if (countries?.Any() == true)
         {
-            <select class="form-control" disabled="@Disabled" @onchange="OnCountryChange">
+            <select id="country-select" class="form-control" disabled="@Disabled" @onchange="OnCountryChange">
                 <option value="">Select a country...</option>
                 @foreach (var country in countries)
                 {
@@ -137,7 +137,7 @@
 
     private int SelectedMainDivisionId;
     private int lastLevelStructureId;
-
+    [Inject] IJSRuntime JS  { get; set; }
     protected override async Task OnInitializedAsync()
     {
         countries = await CountryService.GetAllAsync();
@@ -147,7 +147,15 @@
         if (SelectedCountryId > 0)
             await LoadCountryDataAsync(SelectedCountryId);
     }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
 
+        if (firstRender)
+        {
+            await Task.Delay(100);
+            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+        }
+    }
     private async Task OnCountryChange(ChangeEventArgs e)
     {
         Value = 0; // reset selected division

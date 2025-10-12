@@ -11,56 +11,59 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 
-<div class='container d-flex justify-content-center align-items-center vh-100'>
-            <EditForm Model="@login" OnValidSubmit="HandleLogin" class="p-4 shadow rounded bg-light">
-                <h3 class="text-center mb-4">Login</h3>
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg border-0 w-100" style="max-width: 600px;">
+
+        <!-- Card Header -->
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">Login to Your Account</h3>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body p-4 bg-light rounded-bottom">
+            <EditForm Model="@login" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
 
                 <div class="mb-3">
                     <label for="userName" class="form-label">User name</label>
-                    <input type="text" class="form-control" @bind="login.LoginCode" id="userName" placeholder="Enter user name" required>
+                    <InputText id="userName" class="form-control" @bind-Value="login.LoginCode" placeholder="Enter user name" />
+                    <ValidationMessage For="@(() => login.LoginCode)" />
                 </div>
 
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" @bind="login.Password" id="password" placeholder="Password" required>
+                    <InputText id="password" type="password" class="form-control" @bind-Value="login.Password" placeholder="Password" />
+                    <ValidationMessage For="@(() => login.Password)" />
                 </div>
 
                 <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <InputCheckbox id="rememberMe" class="form-check-input" @bind-Value="rememberMe" />
                     <label class="form-check-label" for="rememberMe">Remember me</label>
                 </div>
 
-                <div class="d-grid">
+                <div class="d-grid mb-3">
                     <button type="submit" class="btn btn-primary">Login</button>
                 </div>
 
-                <div class="text-center mt-3">
-                    <a href="/forgot-password" class="text-decoration-none">Forgot your password?</a>
+                <div class="text-center mb-2">
+                    <a href="/User/ForgetPassword" class="text-decoration-none">Forgot your password?</a>
                 </div>
 
-                <div class="text-center mt-2">
+                <div class="text-center">
                     <span>Don’t have an account?</span>
-                    <a href="/register" class="text-decoration-none">Create one</a>
+                    <a href="/register" class="text-decoration-none ms-1">Create one</a>
                 </div>
             </EditForm>
-    @* <div class='card shadow' style='max-width: 500px; width:100%;'>
-        <div class='card-header'>
-            <h3>Login</h3>
         </div>
-        <div class='card-body'>
-
-
-        </div>
-        <div class="card-footer">
-            <div class="text-center">
-                <small><a href="#">Forgot password?</a></small>
-            </div>
-        </div>
-    </div> *@
+    </div>
 </div>
+
+
+
 
 @code {
     LoginDto login = new LoginDto();
+    private bool rememberMe = false;
     protected override void OnInitialized()
     {
         login = new LoginDto
@@ -72,7 +75,7 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        await HandleLogin();
+        // await HandleLogin();
     }
     private async Task HandleLogin()
     {
