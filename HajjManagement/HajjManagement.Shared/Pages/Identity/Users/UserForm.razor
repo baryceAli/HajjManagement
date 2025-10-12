@@ -1,6 +1,6 @@
 ﻿@page "/User/Form"
 @page "/User/Form/{Id:int?}"
-
+@layout LoginLayout
 @using CoreBusiness
 @using CoreBusiness.Dtos
 @using HajjManagement.Shared.Pages
@@ -51,12 +51,13 @@
                     @if(Id.HasValue && Id > 0)
                     {
                         
-                    <CascadingDivisionSelect SelectedCountryId="@GlobalData.CurrentCountryId"
-                                     @bind-Value="user.AdministrativeDivisionId"
-                                     Disabled="@isDisabled" />
                     }
 
-                                     @* ValueChanged="OnAdminstrativeDivisionChange" *@
+                                     @* @bind-Value="user.AdministrativeDivisionId" *@
+                    <CascadingDivisionSelect Value="@user.AdministrativeDivisionId"
+                                      ValueChanged="OnAdminstrativeDivisionChange"
+                                     Disabled="@isDisabled" />
+
 
             <div class="row mt-3 mx-2">
                 <div class="col">
@@ -170,10 +171,10 @@
                     authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanySuperAdmin)) 
                     ? true : false;
 
-            layoutType = isAdmin ? typeof(MainLayout) : typeof(LoginLayout);
-        
-            user.CountryId = GlobalData.CurrentCountryId;
-        
+        layoutType = isAdmin ? typeof(MainLayout) : typeof(LoginLayout);
+
+        user.CountryId = GlobalData.CurrentCountryId;
+
         if (Id > 0)
         {
             title = "تعديل بيانات مستخدم";
@@ -185,9 +186,11 @@
             }
         }
     }
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         // if()
+        var adm = await AdministrativeDivisionService.GetByIdAsync(user.AdministrativeDivisionId);
+        user.CountryId = adm?.CountryId??0;
         var uss = user;
         var ss = "";
     }
@@ -196,15 +199,16 @@
     {
         NavigationManager.NavigateTo("/User/List");
     }
-    
+
     private async Task OnCountryChange(int e)
     {
-            user.CountryId = e;
-        
+        user.CountryId = e;
+
     }
     private void OnAdminstrativeDivisionChange(int e)
     {
-        
+        user.AdministrativeDivisionId = e;
+        StateHasChanged();
     }
     private async Task OnProfileSelected(ChangeEventArgs e)
     {

@@ -2,6 +2,10 @@
 @using HajjManagement.Shared.Services.Custom
 @using System.Linq.Expressions
 @using System.ComponentModel.DataAnnotations
+
+
+
+
 @inject IAdministrativeDivisionCustomService AdministrativeDivisionCustomService
 @inject ICountryStructureCustomService CountryStructureCustomService
 @inject IGenericAPIService<Country> CountryService
@@ -15,7 +19,7 @@
         <label class="form-label">البلد</label>
         @if (countries?.Any() == true)
         {
-            <select id="country-select" class="form-control" disabled="@Disabled" @onchange="OnCountryChange">
+            <select id="country-select-cascading-division" class="form-control" disabled="@Disabled" @onchange="OnCountryChange">
                 <option value="">Select a country...</option>
                 @foreach (var country in countries)
                 {
@@ -28,13 +32,12 @@
     </div>
 
     <!-- Main Administrative Division -->
-        <div class="col-md-3 mb-3">
-    @if (mainAdministrativeDivisions?.Any() == true)
-    {
-        var label = countryStructures
-        .First(cs => cs.CountryStructureId == mainAdministrativeDivisions.First().CountryStructureId)
-        .Name;
-
+    <div class="col-md-3 mb-3">
+        @if (mainAdministrativeDivisions?.Any() == true)
+        {
+            var label = countryStructures
+                        .First(cs => cs.CountryStructureId == mainAdministrativeDivisions.First().CountryStructureId).Name;
+                    
             <label class="form-label">@label</label>
             <select class="form-control" disabled="@Disabled" @onchange="OnMainAdmDivChange">
                 <option value="">Select a @label...</option>
@@ -48,10 +51,12 @@
         }
         else
         {
-            <label class="form-label">AdministrativeDivision</label>
-            <div class="form-control">
-                <span class="text-danger"><b>Administrative Division is Required</b></span>
-            </div>
+            
+            <label class="form-label">Administrative Division</label>
+            <select class="form-control is-invalid">
+                <option value="">Administrative Division is required </option>
+            </select>
+            
         }
     </div>
 
@@ -69,26 +74,22 @@
                     : new List<AdministrativeDivision>();
                     if (admDivList.Any() && cs.CountryStructureId == lastLevelStructureId)
                     {
-                        <!--<InputSelect class="form-control @(Value == 0 ? "is-invalid" : "")" -->       
-    
                         <div class="position-relative">
-                            <InputSelect class=@(Value==0? "form-control is-invalid":"form-control")
-                                        @bind-Value="Value"
+                            <select class=@(Value==0? "form-control is-invalid":"form-control")
                                         @onchange="(e) => OnStructureChange(e, cs.CountryStructureId)">
                                         <option value="">Select...</option>
                                         @foreach (var ad in admDivList)
                                         {
                                             <option value="@ad.AdministrativeDivisionId">@ad.Name</option>
                                         }
-                            </InputSelect>
-
-                            @if (Value == 0)
-                            {
-                                <div class="invalid-feedback d-block">
-                                    Please select an administrative division.
-                                </div>
-                            }
+                            </select>
                         </div>
+                            // @if (Value == 0)
+                            // {
+                            //     <select>
+                            //         <option> Select ...</option>
+                            //     </select>
+                            // }
 
                     }
                     else if (admDivList.Any())
@@ -124,7 +125,7 @@
     [Parameter] public EventCallback<int> ValueChanged { get; set; }
     [Parameter] public Expression<Func<int>> ValueExpression { get; set; } = default!;
     [Parameter] public bool Disabled { get; set; }
-    [Parameter] public int SelectedCountryId { get; set; }
+    public int SelectedCountryId { get; set; }
 
     private IEnumerable<Country> countries = [];
     private IEnumerable<CountryStructure> countryStructures = [];
@@ -143,9 +144,14 @@
         countries = await CountryService.GetAllAsync();
         countryStructures = await CountryStructureService.GetAllAsync();
         administrativeDivisions = await AdministrativeDivisionService.GetAllAsync();
+        var adm = administrativeDivisions.FirstOrDefault(ad => ad.AdministrativeDivisionId == Value);
+        if (adm != null)
+        {
+            await LoadCountryDataAsync(adm.CountryId); 
+        }
 
-        if (SelectedCountryId > 0)
-            await LoadCountryDataAsync(SelectedCountryId);
+        // if (SelectedCountryId > 0)
+        //     await LoadCountryDataAsync(SelectedCountryId);
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -153,7 +159,7 @@
         if (firstRender)
         {
             await Task.Delay(100);
-            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select-cascading-division");
         }
     }
     private async Task OnCountryChange(ChangeEventArgs e)
@@ -164,6 +170,7 @@
         if (int.TryParse(e.Value?.ToString(), out var countryId))
         {
             SelectedCountryId = countryId;
+            
             await LoadCountryDataAsync(countryId);
         }
 
@@ -223,6 +230,35 @@
     }
 
     private async Task OnStructureChange(ChangeEventArgs e, int structureId)
+{
+    if (!int.TryParse(e.Value?.ToString(), out int selectedId))
+        return;
+
+    // Save the selected value for this level
+    SelectedValues[structureId] = selectedId;
+
+    var currentIndex = childrenCountryStructures.FindIndex(cs => cs.CountryStructureId == structureId);
+
+    // If there are more levels below, reload the next one
+    if (currentIndex >= 0 && currentIndex < childrenCountryStructures.Count - 1)
+    {
+        await ReloadNextLevelAsync(currentIndex, selectedId);
+        // Intermediate level selection → Value not final yet
+        Value = 0;
+        await ValueChanged.InvokeAsync(0);
+    }
+    else if (currentIndex == childrenCountryStructures.Count - 1)
+    {
+        // Last level selected → this is the final AdministrativeDivisionId
+        Value = selectedId;
+        await ValueChanged.InvokeAsync(selectedId);
+    }
+
+    StateHasChanged();
+}
+
+
+    private async Task OnStructureChange1(ChangeEventArgs e, int structureId)
     {
         Value = 0; // reset selected division
         await ValueChanged.InvokeAsync(Value);
@@ -243,6 +279,7 @@
                 await ValueChanged.InvokeAsync(selectedId);
             }
         }
+        StateHasChanged();
     }
 
     private async Task ReloadChildrenAsync(int parentId)
@@ -276,4 +313,5 @@
 
         StateHasChanged();
     }
+
 }
