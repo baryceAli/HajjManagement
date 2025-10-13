@@ -3,6 +3,7 @@
 @layout LoginLayout
 @using CoreBusiness
 @using CoreBusiness.Dtos
+@using CoreBusiness.Utils
 @using HajjManagement.Shared.Pages
 @using HajjManagement.Shared.Layout
 @using HajjManagement.Shared.Services
@@ -222,7 +223,10 @@
                 ModalHeader = "Register new user";
                 ModalMessage = "New user registered successfully";
                 ModalDetails = $"Confirmation link has been sent to email {userDb.Email} ";
+
+
                 await errorMessage.ShowAsync();
+
             }
             else
             {
@@ -251,9 +255,21 @@
     }
     private async Task OnModalButtonClicked()
     {
+
+        var AuthState = await ((CustomAuthStateProvider)AuthenticationStateProvider).GetAuthenticationStateAsync();
+        var isAdmin= GlobalData.IsAdmin(AuthState);
+        if ( !isAdmin)
+        {
+            if(!isError)
+                NavigationManager.NavigateTo("/");
+            await errorMessage.HideAsync();
+            return;
+        }
+        if(!isError)
+            NavigationManager.NavigateTo($"/User/Roles/{user.Email}");
         await errorMessage.HideAsync();
-        // NavigationManager.NavigateTo("/");
     }
+
     private void onCancel()
     {
         NavigationManager.NavigateTo("/User/List");
