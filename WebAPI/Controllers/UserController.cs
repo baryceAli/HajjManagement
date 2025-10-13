@@ -195,8 +195,14 @@ namespace WebAPI.Controllers
                             </body>
                             </html>";
 
+                try
+                {
+                    await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+                }
+                catch(Exception ex)
+                {
 
-                await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+                }
 
                 // 2️⃣ Generate Phone OTP
                 var otp = new Random().Next(100000, 999999).ToString();
