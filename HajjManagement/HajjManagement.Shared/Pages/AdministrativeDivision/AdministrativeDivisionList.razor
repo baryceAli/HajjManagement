@@ -1,7 +1,4 @@
 ﻿@page "/AdministrativeDivision/List"
-@using HajjManagement.Shared.Pages.Common
-@using HajjManagement.Shared.Services
-@using CoreBusiness
 @inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
 @inject IGenericAPIService<Country> CountryService
 @inject IGenericAPIService<CountryStructure> CountryStructureService
@@ -16,14 +13,15 @@
         @if (countries != null && countries.Any())
         {
 
-            <select id="country-select" @onchange="onCountryChanged" class="form-control mt-3">
+            <select id="country-select-administrative-divition" @onchange="onCountryChanged" class="form-control mt-3">
                 <option value="">Select a country...</option>
                 @foreach (var country in countries)
                 {
-                    <option value="@country.CountryId">@country.Name</option>
+                    <option selected="@(country.CountryId==GlobalData.CurrentCountryId)" value="@country.CountryId">@country.Name</option>
                 }
             </select>
         }
+        
         @if (administrativeDivision == null)
         {
             <p>جاري التحميل...</p>
@@ -54,7 +52,6 @@
     private List<CountryStructure> allCountryStructures = new();
     private List<CountryStructure> countryStructures = new();
     private Country selectedCountry = new();
-    private int selectedCountryId = 0;
     [Inject] IJSRuntime JS { get; set; }
     private string language = "Ar";
 
@@ -63,16 +60,16 @@
         try
         {
             countries = (await CountryService.GetAllAsync()).ToList();
-            selectedCountry = countries.FirstOrDefault() ?? new();
-            selectedCountryId = selectedCountry.CountryId;
-            
+            selectedCountry = countries.FirstOrDefault(c=>c.CountryId==GlobalData.CurrentCountryId) ?? new();
+
+
             allAdministrativeDivision = (await AdministrativeDivisionService.GetAllAsync()).ToList();
             administrativeDivision = allAdministrativeDivision
-                .Where(ad => ad.CountryId == selectedCountryId)
+                .Where(ad => ad.CountryId == GlobalData.CurrentCountryId)
                 .ToList();
-            
+
             allCountryStructures = (await CountryStructureService.GetAllAsync()).ToList();
-            countryStructures = allCountryStructures.Where(cs => cs.CountryId == selectedCountryId).ToList();
+            countryStructures = allCountryStructures.Where(cs => cs.CountryId == GlobalData.CurrentCountryId).ToList();
         }
         catch (Exception ex)
         {
@@ -84,7 +81,8 @@
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select");
+            await Task.Delay(100);
+            await JS.InvokeVoidAsync("initializeTomSelect", "#country-select-administrative-divition");
 
 
         }
@@ -111,12 +109,12 @@
         if (int.TryParse(e.Value?.ToString(), out int countryId))
         {
 
-            selectedCountryId = countryId;
-            
+            GlobalData.CurrentCountryId = countryId;
+            selectedCountry = countries.First(c => c.CountryId == countryId);
             administrativeDivision = allAdministrativeDivision
-                .Where(ad => ad.CountryId == selectedCountryId)
+                .Where(ad => ad.CountryId == countryId)
                 .ToList();
-            countryStructures = allCountryStructures.Where(cs => cs.CountryId == selectedCountryId).ToList();
+            countryStructures = allCountryStructures.Where(cs => cs.CountryId == countryId).ToList();
             // await JS.InvokeVoidAsync("console.log", $"Selected Country ID: {selectedCountryId}");
             StateHasChanged();
         }

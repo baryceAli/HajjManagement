@@ -4,6 +4,7 @@
 @* <h3>AdministrativeDivisionForm</h3> *@
 @using CoreBusiness
 @using HajjManagement.Shared.Services
+@using HajjManagement.Shared.Utilities
 @inject IGenericAPIService<CountryStructure> CountryStructureService
 @inject IGenericAPIService<Country> CountryService
 @inject NavigationManager NavigationManager
@@ -12,6 +13,7 @@
     <div class="card-header">
         <h3>@title</h3>
     </div>
+   
     <div class="card-body">
         <EditForm Model="countryStructure" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
@@ -36,7 +38,7 @@
                             <option value="">Select a country...</option>
                             @foreach (var country in countries)
                             {
-                                <option value="@country.CountryId">@country.Name</option>
+                                <option selected="@(country.CountryId==GlobalData.CurrentCountryId)" value="@country.CountryId">@country.Name</option>
                             }
                         </select>
                     }
@@ -81,7 +83,7 @@
     {
         countries = (await CountryService.GetAllAsync()).ToList();
 
-
+        var ss=GlobalData.CurrentCountryId;
         AllCountryStructureList = (await CountryStructureService.GetAllAsync()).ToList(); // Fetching administrative divisions
         AllCountryStructureList.Insert(0, new CountryStructure { CountryStructureId = 0, Name = "لا يوجد" });
         if (Id.HasValue && Id.Value > 0)
@@ -164,7 +166,8 @@
             if (CountryStructureList != null && CountryStructureList.Any())
             {
                 countryStructure.ParentCountryStructureId = CountryStructureList.First().CountryStructureId;
-            // parentCountryStructure = CountryStructureList.First();
+                GlobalData.CurrentCountryId = countryStructure?.CountryId ?? GlobalData.CurrentCountryId;
+
             }
             StateHasChanged();
         }

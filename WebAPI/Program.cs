@@ -8,12 +8,14 @@ using Infrastructure.Plugin.Datastore.SQLServer;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Security.Claims;
 using System.Text;
+using WebAPI.HelperMethods;
 using WebAPI.Util;
 
 namespace WebAPI
@@ -126,7 +128,18 @@ namespace WebAPI
                 options.UseSqlServer(connectionString, b => b.MigrationsAssembly("WebAPI")));
 
 
-            builder.Services.AddIdentity<CoreBusiness.User, CoreBusiness.Role>()
+            builder.Services
+                .AddIdentity<CoreBusiness.User, CoreBusiness.Role>(options => 
+                {
+                    options.User.RequireUniqueEmail = true;
+                    options.SignIn.RequireConfirmedEmail = true; // Email confirmation required
+                    options.SignIn.RequireConfirmedAccount = true;
+                    options.Password.RequireDigit = true;
+                    options.Password.RequiredLength = 6;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireLowercase = false;
+                })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -153,6 +166,7 @@ namespace WebAPI
             builder.Services.AddScoped<IRoleService, RoleService>();
 
             builder.Services.AddScoped<AuthService>();
+            builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
             //builder.Services.AddScoped<ITempUserRoleService, TempUserRoleService>();
             var app = builder.Build();

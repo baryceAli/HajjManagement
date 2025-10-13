@@ -1,4 +1,4 @@
-﻿@page "/login"
+﻿@page "/"
 @layout LoginLayout
 @using CoreBusiness
 @using CoreBusiness.Dtos
@@ -9,76 +9,98 @@
 
 @inject IGenericAPIService<LoginDto> userService
 @inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthStateProvider
-<div class="container login-container d-flex align-items-center justify-content-center">
-    <div class="row w-100">
-        <div class="col-md-6 offset-md-3">
-            <div class="card login-card p-4">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">Login</h3>
-                    <EditForm Model="@login" OnValidSubmit="HandleLogin">
-                        <div class="mb-3">
-                            <label for="userName" class="form-label">User name</label>
-                            <input type="text" class="form-control" @bind="login.LoginCode" id="userName" placeholder="Enter user name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" @bind="login.Password" id="password" placeholder="Password" required>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">Remember me</label>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Login</button>
-                        </div>
-                    </EditForm>
-                    <div class="text-center mt-3">
-                        <small><a href="#">Forgot password?</a></small>
-                    </div>
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg border-0 w-100" style="max-width: 600px;">
+
+        <!-- Card Header -->
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">Login to Your Account</h3>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body p-4 bg-light rounded-bottom">
+            <EditForm Model="@login" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label for="userName" class="form-label">User name</label>
+                    <InputText id="userName" class="form-control" @bind-Value="login.LoginCode" placeholder="Enter user name" />
+                    <ValidationMessage For="@(() => login.LoginCode)" />
                 </div>
-            </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" type="password" class="form-control" @bind-Value="login.Password" placeholder="Password" />
+                    <ValidationMessage For="@(() => login.Password)" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox id="rememberMe" class="form-check-input" @bind-Value="rememberMe" />
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+
+                <div class="text-center mb-2">
+                    <a href="/User/ForgetPassword" class="text-decoration-none">Forgot your password?</a>
+                </div>
+
+                <div class="text-center">
+                    <span>Don’t have an account?</span>
+                    <a href="/User/Form" class="text-decoration-none ms-1">Create one</a>
+                </div>
+            </EditForm>
         </div>
     </div>
 </div>
+
+
+
+
 @code {
     LoginDto login = new LoginDto();
+    private bool rememberMe = false;
     protected override void OnInitialized()
     {
+
         login = new LoginDto
-            {
-                LoginCode = "MainSuperAdmin",
-                Password = "Admin@123"
-            };
-        base.OnInitialized();
+        {
+            LoginCode = "MainSuperAdmin",
+            Password = "Admin@123"
+        };
+        // base.OnInitialized();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+
     }
     private async Task HandleLogin()
     {
-        var loginResponse = await userService.LoginAsync(login);
+        AuthResponse loginResponse = await userService.LoginAsync(login,"v1","user");
 
         if (loginResponse != null)
         {
             // GlobalData.User = user;
             GlobalData.Token = loginResponse.Token;
             GlobalData.User = loginResponse.User;
-
-            ((CustomAuthStateProvider)AuthStateProvider)
+            GlobalData.CurrentCountryId = GlobalData.User.CountryId;
+            ((CustomAuthStateProvider)AuthenticationStateProvider)
                 .NotifyUserAuthentication(loginResponse.Token);
 
-            NavigationManager.NavigateTo("/");
+            // NavigationManager.NavigateTo("/");
 
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("/home");
             return;
         }
-        User user = new User() // Change TempUser to User to match type definition
+        else
         {
-            Id = 1,
-            Address = "Test Address",
-            FirstName = "Test",
-            LastName = "User",
+            //Show Alert than login has failed
+        }
 
-
-        };
 
         
         // Handle login logic here

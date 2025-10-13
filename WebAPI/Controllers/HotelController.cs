@@ -21,12 +21,14 @@ namespace WebAPI.Controllers
         }
 
         [HttpGet]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get()
         {
             var hotel = await service.GetAllAsync();
             return Ok(hotel);
         }
         [HttpGet("{id}")]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get(int id)
         {
             var hotel = await service.GetByIdAsync(id);
@@ -37,6 +39,7 @@ namespace WebAPI.Controllers
             return Ok(hotel);
         }
         [HttpPost]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Create([FromBody] Hotel hotel)
         {
             var created = await service.AddAsync(hotel);
@@ -47,6 +50,7 @@ namespace WebAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id = created.HotelId}, created);
         }
         [HttpPut]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Update([FromBody] Hotel hotel)
         {
             var updated = await service.UpdateAsync(hotel);
@@ -57,6 +61,7 @@ namespace WebAPI.Controllers
             return Ok(updated);
         }
         [HttpDelete("{id}")]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await service.DeleteAsync(id);

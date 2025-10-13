@@ -70,7 +70,7 @@
 @code {
     [Parameter]
     public int? Id { get; set; }
-    private string title = "إضافة الهيكل الإداري";
+    private string title = "إضافة بيانات العقود";
     private Contract? contract = new(); // Field to hold the current AdministrativeDivisionType
     // private IEnumerable<Contract> contractList;
     private List<Hotel> hotelList = new();
@@ -81,10 +81,12 @@
     override protected async Task OnInitializedAsync()
     {
         hotelList = (await HotelService.GetAllAsync()).ToList();
-
+        
+        contract.Start = DateTime.Now;
+        contract.End = DateTime.Now;
         if (Id.HasValue && Id.Value > 0)
         {
-            title = "تعديل الهيكل الإداري";
+            title = "تعديل بيانات العقود";
             contract = await ContractService.GetByIdAsync(Id.Value);
 
             TimeZoneInfo localZone = TimeZoneInfo.Local;
@@ -101,8 +103,7 @@
         }
         else
         {
-            contract.Start = DateTime.Now;
-            contract.End = DateTime.Now;
+            
         }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)

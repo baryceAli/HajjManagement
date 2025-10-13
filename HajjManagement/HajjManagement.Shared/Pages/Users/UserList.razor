@@ -80,18 +80,28 @@
             new() { Title = IsArabic ? "الاسم" : "Name", Property = "URL_User_Details_Id", 
                         GetValue = u =>new{Id=u.Id,Name= $"{u.FirstName} {u.LastName}",URL="User/Details"} },
             new() { Title = IsArabic ? "رقم الجواز" : "Passport", Property = "Passport", GetValue = u => u.Passport },
-            new() { Title = IsArabic ? "الدولة" : "Email", Property = "CountryId", GetValue = u => u.CountryId },
+            new() { Title = IsArabic ? "الدولة" : "Country", Property = "URL_Country", 
+                        GetValue = u => u.CountryId==0?new {
+                                                Id = u.Id,
+                                                Name =string.IsNullOrWhiteSpace( u.FirstName + u.LastName)?"استكمال بيانات المستخدم":$"استكمال بيانات {u.FirstName}",
+                                                URL="User/Form"
+                                            }: new {
+                                                Id = u.CountryId,
+                                                Name = countries.First(c => c.CountryId == u.CountryId).Name,
+                                                URL="Country/Details"
+                                            } },
             new() { Title = IsArabic ? "الوحدة الإدارية" : "AdministrativeDivision", Property = "URL_AdministrativeDivision", 
-                        GetValue = u => new {
+                        GetValue = u => (u.AdministrativeDivisionId==0)? new {
+                                                Id = u.Id,
+                                                Name =string.IsNullOrWhiteSpace( u.FirstName + u.LastName)?"استكمال بيانات المستخدم":$"استكمال بيانات {u.FirstName}",
+                                                URL="User/Form"
+                                            }: new {
                                                 Id = u.AdministrativeDivisionId,
                                                 Name = administrativeDivisionList.First(ad => ad.AdministrativeDivisionId == u.AdministrativeDivisionId).Name,
                                                 URL="AdministrativeDivision/Details"
-                                            }
-                        ,isHidden=false  },
-            // new() { Title = IsArabic ? "الصورة" : "Photo", Property = "ProfilePictureUrl", GetValue = u => u.ProfilePictureUrl },
+                                            },
+                                            isHidden=false  },
             new() { Title = IsArabic ? "الصورة" : "Photo", Property = "pictureURL_images_user_profile_50_50", GetValue = u => u.ProfilePictureUrl },
-            // New column for Phone Number
-            // new() { Title = IsArabic ? "رقم الهاتف" : "Phone Number", Property = "PhoneNumber", GetValue = g => g.phone },
         };
     }
     // These methods must exist to handle OnView and OnEdit events

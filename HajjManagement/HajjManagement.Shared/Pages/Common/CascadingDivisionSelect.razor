@@ -1,0 +1,351 @@
+﻿@using CoreBusiness
+@using HajjManagement.Shared.Services.Custom
+@using System.Linq.Expressions
+@using System.ComponentModel.DataAnnotations
+
+
+
+
+@inject IAdministrativeDivisionCustomService AdministrativeDivisionCustomService
+@inject ICountryStructureCustomService CountryStructureCustomService
+@inject IGenericAPIService<Country> CountryService
+@inject IGenericAPIService<CountryStructure> CountryStructureService
+@inject IGenericAPIService<AdministrativeDivision> AdministrativeDivisionService
+
+<div class="row mt-3 mx-2">
+
+    <!-- Country -->
+    <div class="col-md-3 mb-3">
+        <label class="form-label">البلد</label>
+        <select id="country-select-cascading-division" class="form-control" disabled="@Disabled" @onchange="OnCountryChange">
+            
+            @if (isLoading)
+            {
+                <option>Loading...</option>
+            }
+            else if (countries == null || !countries.Any())
+            {
+                <option value="">No countries available</option>
+            }
+            else
+            {
+                <option value="">Select a country...</option>
+                @foreach (var country in countries)
+                {
+                    <option value="@country.CountryId" selected="@(country.CountryId == SelectedCountryId)">
+                        @country.Name
+                    </option>
+                }
+            }
+        </select>
+    </div>
+
+    <!-- Main Administrative Division -->
+    <div class="col-md-3 mb-3">
+        @if (mainAdministrativeDivisions?.Any() == true)
+        {
+            var label = countryStructures
+            .First(cs => cs.CountryStructureId == mainAdministrativeDivisions.First().CountryStructureId).Name;
+
+            <label class="form-label">@label</label>
+            <select class="form-control" disabled="@Disabled" @onchange="OnMainAdmDivChange">
+                <option value="">Select a @label...</option>
+                @foreach (var mad in mainAdministrativeDivisions)
+                {
+                    <option value="@mad.AdministrativeDivisionId" selected="@(mad.AdministrativeDivisionId == SelectedMainDivisionId)">
+                        @mad.Name
+                    </option>
+                }
+            </select>
+        }
+        else
+        {
+
+            <label class="form-label">Administrative Division</label>
+            <select class="form-control is-invalid">
+                <option value="">Administrative Division is required </option>
+            </select>
+
+        }
+    </div>
+
+    <!-- Dynamic Child Administrative Divisions -->
+    @if (childrenCountryStructures != null && childrenCountryStructures.Any())
+    {
+        @foreach (var cs in childrenCountryStructures)
+        {
+            <div class="col-md-3 mb-3">
+                <label class="form-label">@cs.Name</label>
+
+                @{
+                    var admDivList = divisionLevels.ContainsKey(cs.CountryStructureId)
+                    ? divisionLevels[cs.CountryStructureId]
+                    : new List<AdministrativeDivision>();
+                    if (admDivList.Any() && cs.CountryStructureId == lastLevelStructureId)
+                    {
+                        <div class="position-relative">
+                            <select class=@(Value == 0 ? "form-control is-invalid" : "form-control")
+                                    @onchange="(e) => OnStructureChange(e, cs.CountryStructureId)">
+                                <option value="">Select...</option>
+                                @foreach (var ad in admDivList)
+                                {
+                                    <option value="@ad.AdministrativeDivisionId">@ad.Name</option>
+                                }
+                            </select>
+                        </div>
+                        // @if (Value == 0)
+                        // {
+                        //     <select>
+                        //         <option> Select ...</option>
+                        //     </select>
+                        // }
+
+                    }
+                    else if (admDivList.Any())
+                    {
+                        <select class="form-control"
+                                @onchange="(e) => OnStructureChange(e, cs.CountryStructureId)">
+                            <option value="">Select...</option>
+                            @foreach (var ad in admDivList)
+                            {
+                                <option value="@ad.AdministrativeDivisionId"
+                                        selected="@(ad.AdministrativeDivisionId == SelectedValues.GetValueOrDefault(cs.CountryStructureId))">
+                                    @ad.Name
+                                </option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <div class="form-control">
+                            <span class="text-danger"><b>You Must enter @cs.Name</b></span>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    [Required(ErrorMessage = "Please select an administrative division.")]
+    public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+    [Parameter] public Expression<Func<int>> ValueExpression { get; set; } = default!;
+    [Parameter] public bool Disabled { get; set; }
+    public int SelectedCountryId { get; set; }
+
+    private IEnumerable<Country> countries = [];
+    private IEnumerable<CountryStructure> countryStructures = [];
+    private IEnumerable<AdministrativeDivision> administrativeDivisions = [];
+    private IEnumerable<AdministrativeDivision> mainAdministrativeDivisions = [];
+
+    private List<CountryStructure> childrenCountryStructures = new();
+    private Dictionary<int, List<AdministrativeDivision>> divisionLevels = new();
+    private Dictionary<int, int> SelectedValues = new();
+
+    private int SelectedMainDivisionId;
+    private int lastLevelStructureId;
+    private bool isLoading = false;
+    [Inject] IJSRuntime JS { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        // Console.WriteLine("OnInitializedAsync started");
+        isLoading = true;
+
+        try
+        {
+            countries = await CountryService.GetAllAsync();
+            Console.WriteLine($"Countries loaded: {countries?.Count()}");
+            countryStructures = await CountryStructureService.GetAllAsync();
+            administrativeDivisions = await AdministrativeDivisionService.GetAllAsync();
+
+            var adm = administrativeDivisions.FirstOrDefault(ad => ad.AdministrativeDivisionId == Value);
+            SelectedCountryId = adm?.CountryId ?? countries.FirstOrDefault()?.CountryId ?? 0;
+
+            await LoadCountryDataAsync(SelectedCountryId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ ERROR in OnInitializedAsync: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            Console.WriteLine("isLoading set to false");
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // await JS.InvokeVoidAsync("reinitializeTomSelects");
+        }
+    }
+    private async Task OnCountryChange(ChangeEventArgs e)
+    {
+        Value = 0; // reset selected division
+        await ValueChanged.InvokeAsync(Value);
+
+        if (int.TryParse(e.Value?.ToString(), out var countryId))
+        {
+            SelectedCountryId = countryId;
+            // 🔹 Reset all previous data to prevent duplicates
+            mainAdministrativeDivisions = [];
+            childrenCountryStructures = [];
+            // administrativeDivisions=[];
+            // countryStructures=[];
+            //SelectedDivisions.Clear(); // or reset SelectedDivisionId list
+
+            
+
+            // 🔹 Load fresh structures for this country
+            await LoadCountryDataAsync(countryId);
+
+
+        }
+
+
+    }
+
+    private async Task LoadCountryDataAsync(int countryId)
+    {
+        // Clear all previous selections and data
+        mainAdministrativeDivisions = [];
+        childrenCountryStructures = [];
+        divisionLevels.Clear();
+        SelectedValues.Clear();
+        SelectedMainDivisionId = 0;
+        lastLevelStructureId = 0;
+        Value = 0;
+        if (countryId == 0)
+            return;
+
+        // Load main administrative divisions (top level)
+        mainAdministrativeDivisions = administrativeDivisions
+            .Where(ad => ad.CountryId == countryId && (!ad.ParentId.HasValue || ad.ParentId == 0))
+            .ToList();
+
+        // Load structure hierarchy
+        var mainStructure = countryStructures.FirstOrDefault(cs => cs.CountryId == countryId);
+        if (mainStructure != null)
+        {
+            childrenCountryStructures = (await CountryStructureCustomService
+                .GetChildrenAsync(mainStructure.CountryStructureId, countryStructures.ToList())).ToList();
+            Console.WriteLine($"Country: {countryId} | Structures: {string.Join(", ", childrenCountryStructures.Select(cs => cs.Name))}");
+
+            lastLevelStructureId = childrenCountryStructures.LastOrDefault()?.CountryStructureId ?? 0;
+
+            // Initialize division levels
+            var allDivisions = administrativeDivisions.Where(ad => ad.CountryId == countryId).ToList();
+            foreach (var cs in childrenCountryStructures)
+            {
+                divisionLevels[cs.CountryStructureId] = allDivisions
+                    .Where(ad => ad.CountryStructureId == cs.CountryStructureId)
+                    .ToList();
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnMainAdmDivChange(ChangeEventArgs e)
+    {
+        Value = 0; // reset selected division
+        await ValueChanged.InvokeAsync(Value);
+
+        if (int.TryParse(e.Value?.ToString(), out var adId))
+        {
+            SelectedMainDivisionId = adId;
+            await ReloadChildrenAsync(adId);
+        }
+    }
+
+    private async Task OnStructureChange(ChangeEventArgs e, int structureId)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int selectedId))
+            return;
+
+        // Save the selected value for this level
+        SelectedValues[structureId] = selectedId;
+
+        var currentIndex = childrenCountryStructures.FindIndex(cs => cs.CountryStructureId == structureId);
+
+        // If there are more levels below, reload the next one
+        if (currentIndex >= 0 && currentIndex < childrenCountryStructures.Count - 1)
+        {
+            await ReloadNextLevelAsync(currentIndex, selectedId);
+            // Intermediate level selection → Value not final yet
+            Value = 0;
+            await ValueChanged.InvokeAsync(0);
+        }
+        else if (currentIndex == childrenCountryStructures.Count - 1)
+        {
+            // Last level selected → this is the final AdministrativeDivisionId
+            Value = selectedId;
+            await ValueChanged.InvokeAsync(selectedId);
+        }
+
+        StateHasChanged();
+    }
+
+
+    private async Task OnStructureChange1(ChangeEventArgs e, int structureId)
+    {
+        Value = 0; // reset selected division
+        await ValueChanged.InvokeAsync(Value);
+
+        if (int.TryParse(e.Value?.ToString(), out int selectedId))
+        {
+            SelectedValues[structureId] = selectedId;
+
+            var currentIndex = childrenCountryStructures.FindIndex(cs => cs.CountryStructureId == structureId);
+
+            if (currentIndex >= 0 && currentIndex < childrenCountryStructures.Count - 1)
+            {
+                await ReloadNextLevelAsync(currentIndex, selectedId);
+            }
+            else if (currentIndex == childrenCountryStructures.Count - 1)
+            {
+                Value = selectedId;
+                await ValueChanged.InvokeAsync(selectedId);
+            }
+        }
+        StateHasChanged();
+    }
+
+    private async Task ReloadChildrenAsync(int parentId)
+    {
+        var allDivisions = await AdministrativeDivisionService.GetAllAsync();
+
+        for (int i = 0; i < childrenCountryStructures.Count; i++)
+        {
+            var cs = childrenCountryStructures[i];
+            divisionLevels[cs.CountryStructureId] = allDivisions
+                .Where(ad => ad.ParentId == parentId && ad.CountryStructureId == cs.CountryStructureId)
+                .ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ReloadNextLevelAsync(int currentIndex, int parentId)
+    {
+        var allDivisions = await AdministrativeDivisionService.GetAllAsync();
+
+        for (int i = currentIndex + 1; i < childrenCountryStructures.Count; i++)
+        {
+            var nextCs = childrenCountryStructures[i];
+            divisionLevels[nextCs.CountryStructureId] = allDivisions
+                .Where(ad => ad.ParentId == parentId && ad.CountryStructureId == nextCs.CountryStructureId)
+                .ToList();
+
+            SelectedValues[nextCs.CountryStructureId] = 0;
+        }
+
+        StateHasChanged();
+    }
+
+}

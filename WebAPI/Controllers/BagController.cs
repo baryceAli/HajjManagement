@@ -21,12 +21,14 @@ namespace WebAPI.Controllers
         }
 
         [HttpGet]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get()
         {
             var bag = await service.GetAllAsync();
             return Ok(bag);
         }
         [HttpGet("{id}")]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Get(int id)
         {
             var bag = await service.GetByIdAsync(id);
@@ -37,6 +39,7 @@ namespace WebAPI.Controllers
             return Ok(bag);
         }
         [HttpPost]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Create([FromBody] Bag bag)
         {
             var created = await service.AddAsync(bag);
@@ -47,6 +50,7 @@ namespace WebAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id = created.BagId}, created);
         }
         [HttpPut]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Update([FromBody] Bag  bag)
         {
             var updated = await service.UpdateAsync(bag);
@@ -57,6 +61,7 @@ namespace WebAPI.Controllers
             return Ok(updated);
         }
         [HttpDelete("{id}")]
+        [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await service.DeleteAsync(id);

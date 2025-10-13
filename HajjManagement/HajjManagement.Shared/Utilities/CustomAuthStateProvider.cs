@@ -27,7 +27,7 @@ namespace HajjManagement.Shared.Utilities
             }
 
             var user = new ClaimsPrincipal(identity);
-            return new AuthenticationState(user);
+            return new  AuthenticationState(user);
         }
 
         public void NotifyUserAuthentication(string token)
