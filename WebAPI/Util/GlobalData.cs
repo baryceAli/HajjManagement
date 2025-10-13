@@ -3,7 +3,7 @@
     public static class GlobalData
     {
         public static int CurrentCountryId { get; set; }
-
+        public static string EmailPassword { get; set; }
         public static string GenerateRandomPassword(int length = 8)
         {
             if (length < 3)

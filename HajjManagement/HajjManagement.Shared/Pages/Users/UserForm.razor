@@ -132,8 +132,8 @@
                         <ValidationSummary></ValidationSummary>
                     </div>
                     <div class="mt-3 mx-2 mb-2">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
-                        <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+                        <button type="button" class="btn btn-dark" disabled="@isLoading" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
                     </div>
 
 
@@ -166,7 +166,8 @@
     private string title = "تسجيل مستخدم جديد";
     // private User? userDB = new();
     private UserDto? user = new();
-    private bool isAdmin = false;
+    private bool isLoading= false;
+
     private Type layoutType = typeof(LoginLayout);
     private ElementReference? fileInput;
     [Inject] IJSRuntime JS { get; set; } = default!;
@@ -176,17 +177,7 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var authUser = authState.User;
-        isAdmin = authUser.Identity!.IsAuthenticated && (authUser.IsInRole(CoreBusiness.Utils.RoleNames.CountryAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.MainAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CountrySuperAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanyAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.MainSuperAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanySuperAdmin))
-                    ? true : false;
 
-        layoutType = isAdmin ? typeof(MainLayout) : typeof(LoginLayout);
 
         user.CountryId = GlobalData.CurrentCountryId;
 
@@ -206,6 +197,7 @@
         // if()
         try
         {
+            isLoading = true;
             ModalHeader = "Add new user";
 
             var adm = await AdministrativeDivisionService.GetByIdAsync(user.AdministrativeDivisionId);
@@ -236,6 +228,7 @@
                 ModalDetails = $"{responseMessage.SytemMessage}";
                 await errorMessage.ShowAsync();
             }
+            isLoading = false;
         }
         catch (Exception ex)
         {
@@ -249,7 +242,7 @@
                 ModalDetails = string.Empty;// ex.ToString();
                 await errorMessage.ShowAsync();
             }
-            return;
+            isLoading = false;
         }
     }
     private async Task OnModalButtonClicked()

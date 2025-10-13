@@ -26,6 +26,9 @@ namespace WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var section = builder.Configuration.GetSection("Smtp");
+            GlobalData.EmailPassword = section["Password"];
+
 
             //
 
