@@ -20,16 +20,16 @@ namespace WebAPI.Controllers
     [ApiVersion("2.0")] // v2 (future changes)
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly IEmailSender _emailSender;
-        private readonly AuthService _authService; // optional JWT service
+        private readonly UserManager<User> userManager;
+        private readonly IEmailSender emailSender;
+        private readonly AuthService authService; // optional JWT service
         private readonly IConfiguration configuration;
 
         public AuthController(UserManager<User> userManager, IEmailSender emailSender, AuthService authService, IConfiguration configuration)
         {
-            _userManager = userManager;
-            _emailSender = emailSender;
-            _authService = authService;
+            this.userManager = userManager;
+            this.emailSender = emailSender;
+            this.authService = authService;
             this.configuration = configuration;
         }
 
@@ -46,11 +46,11 @@ namespace WebAPI.Controllers
                 PhoneNumber = model.PhoneNumber
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded) return BadRequest(result.Errors);
 
             // 1️⃣ Generate Email Confirmation Token
-            var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var emailToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedEmailToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(emailToken));
             var emailConfirmUrl = $"{Request.Scheme}://{Request.Host}/api/v1/auth/confirm-email?userId={user.Id}&token={encodedEmailToken}";
 
@@ -112,13 +112,13 @@ namespace WebAPI.Controllers
                                 </div>
                             </body>
                             </html>";
-            await _emailSender.SendEmailAsync(user.Email, "Confirm your email",emailBody);
+            await emailSender.SendEmailAsync(user.Email, "Confirm your email",emailBody);
 
             // 2️⃣ Generate Phone OTP
             var otp = new Random().Next(100000, 999999).ToString();
             user.PhoneOtp = otp;
             user.PhoneOtpExpiry = DateTime.UtcNow.AddMinutes(5);
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             // TODO: Send OTP via SMS provider here (Twilio, Nexmo, etc.)
 
@@ -126,7 +126,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("register")]
-        [MapToApiVersion("2.0")] // only available in v1
+        [MapToApiVersion("2.0")] // only available in v2
         public async Task<IActionResult> RegisterV2([FromBody] UserDto model)
         {
 
@@ -148,7 +148,7 @@ namespace WebAPI.Controllers
                 Email = model.Email,
             };
 
-            var result = await _userManager.CreateAsync(user, GlobalData.GenerateRandomPassword(8));
+            var result = await userManager.CreateAsync(user, GlobalData.GenerateRandomPassword(8));
             if (!result.Succeeded) return BadRequest(result.Errors);
 
 
@@ -165,7 +165,7 @@ namespace WebAPI.Controllers
             //var resetUrl = $"{websiteUrl}/{resetPasswordPath}/{user.Email}/{encodedToken}";
 
             // 1️⃣ Generate Email Confirmation Token
-            var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var emailToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedEmailToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(emailToken));
             var emailConfirmUrl = $"{Request.Scheme}://{Request.Host}/api/v1/auth/confirm-email?userId={user.Id}&token={encodedEmailToken}";
             //emailConfirmUrl= $"{websiteUrl}/{confirmEmailPath}/{user.Id}/{encodedEmailToken}";
@@ -234,13 +234,13 @@ namespace WebAPI.Controllers
                             </html>";
             
             
-            await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+            await emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
 
             // 2️⃣ Generate Phone OTP
             var otp = new Random().Next(100000, 999999).ToString();
             user.PhoneOtp = otp;
             user.PhoneOtpExpiry = DateTime.UtcNow.AddMinutes(5);
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             // TODO: Send OTP via SMS provider here (Twilio, Nexmo, etc.)
 
@@ -251,7 +251,7 @@ namespace WebAPI.Controllers
         [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> ConfirmPhone([FromBody] PhoneOtpRequest model)
         {
-            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
+            var user = await userManager.FindByIdAsync(model.UserId.ToString());
             if (user == null) return NotFound();
 
             if (user.PhoneOtpExpiry < DateTime.UtcNow)
@@ -263,7 +263,7 @@ namespace WebAPI.Controllers
             user.PhoneOtp = null;
             user.PhoneOtpExpiry = null;
             user.PhoneNumberConfirmed = true;
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             return Ok("Phone confirmed successfully");
         }
@@ -272,7 +272,7 @@ namespace WebAPI.Controllers
         [MapToApiVersion("1.0")] // only available in v1
         public async Task<IActionResult> ConfirmEmail(int userId, string token)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
 
@@ -336,7 +336,7 @@ namespace WebAPI.Controllers
                                     "text/html");
             }
 
-            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+            var result = await userManager.ConfirmEmailAsync(user, decodedToken);
 
             if (result.Succeeded)
             {

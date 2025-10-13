@@ -76,38 +76,151 @@ namespace WebAPI.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Register([FromBody] RegisterDto model)
+        [HttpPost("register")]
+        [MapToApiVersion("1.0")] // only available in v2
+        public async Task<IActionResult> Register([FromBody] UserDto model)
         {
-            var user = new CoreBusiness.User
+            try
             {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                //UserName = model.LoginCode,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber,
-                Address = model.Address,
-                ProfilePictureUrl = model.ProfilePictureUrl,
-                CountryId = model.CountryId,
-                //AdministrativeDivisionTypeId = model.AdministrativeDivisionTypeId,
-                AdministrativeDivisionId = model.AdministrativeDivisionId
-            };
 
-            var result = await userManager.CreateAsync(user, model.Password);
+                var user = new User
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Passport = model.Passport,
+                    IssueDate = model.IssueDate,
+                    ExpiryDate = model.ExpiryDate,
+                    DateOfBirth = model.DateOfBirth,
+                    Address = model.Address,
+                    ProfilePictureUrl = model.ProfilePictureUrl,
+                    CountryId = model.CountryId,
+                    AdministrativeDivisionId = model.AdministrativeDivisionId,
+                    PhoneNumber = model.PhoneNumber,
+                    isProfileCompleted = model.isProfileCompleted,
+                    UserName = model.Email,
+                    Email = model.Email,
+                };
 
-            if (result.Succeeded)
-            {
-                // Optionally, you can add user to roles or perform additional actions here
-                return CreatedAtAction(nameof(Register), new { id = user.Id }, user);
+                var result = await userManager.CreateAsync(user, GlobalData.GenerateRandomPassword(8));
+                if (!result.Succeeded)
+                    return BadRequest(new ApiResponseMessage { FriendlyMessage = "Failed to register new user", SytemMessage = result.Errors.FirstOrDefault().Code, IsSuccess = false, ErorrCode = "500", DetailedError = result.Errors.FirstOrDefault().Description });
+
+
+                //Add Guest Role
+                var existingUser = await userManager.FindByEmailAsync(user.Email);
+                var role = await roleManager.FindByNameAsync(CoreBusiness.Utils.RoleNames.Guest);
+
+                if (existingUser != null && role!=null)
+                {
+                    await userManager.AddToRoleAsync(existingUser, role.Name);
+                }
+
+
+                // 2️⃣ Build reset page link
+                //var websiteUrl = configuration["HajjManagement:WebSiteURL"];  // e.g., https://localhost:7273/
+                //var confirmEmailPath = configuration["HajjManagement:ConfirmEmailURL"]; // e.g., User/ResetPassword/
+
+                // Trim trailing slashes to avoid double slashes
+                //websiteUrl = websiteUrl?.TrimEnd('/');
+                //confirmEmailPath = confirmEmailPath?.Trim('/');
+
+                //var resetUrl = $"{websiteUrl}/{resetPasswordPath}/{user.Email}/{encodedToken}";
+
+                // 1️⃣ Generate Email Confirmation Token
+                var emailToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                var encodedEmailToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(emailToken));
+                var emailConfirmUrl = $"{Request.Scheme}://{Request.Host}/api/v1/auth/confirm-email?userId={user.Id}&token={encodedEmailToken}";
+                //emailConfirmUrl= $"{websiteUrl}/{confirmEmailPath}/{user.Id}/{encodedEmailToken}";
+
+
+                var emailBody = @$"
+                            <html>
+                            <head>
+                                <meta charset='UTF-8'>
+                                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                <style>
+                                    body {{
+                                        font-family: Arial, sans-serif;
+                                        background-color: #f6f9fc;
+                                        padding: 30px;
+                                        color: #333;
+                                    }}
+                                    .container {{
+                                        background: #ffffff;
+                                        border-radius: 8px;
+                                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                                        max-width: 600px;
+                                        margin: auto;
+                                        padding: 30px;
+                                    }}
+                                    .header {{
+                                        text-align: center;
+                                        color: #28a745;
+                                    }}
+                                    .button {{
+                                        display: inline-block;
+                                        padding: 12px 24px;
+                                        margin-top: 20px;
+                                        background-color: #28a745;
+                                        color: #fff;
+                                        text-decoration: none;
+                                        border-radius: 5px;
+                                        font-weight: bold;
+                                    }}
+                                    .footer {{
+                                        font-size: 12px;
+                                        color: #777;
+                                        text-align: center;
+                                        margin-top: 30px;
+                                    }}
+                                </style>
+                            </head>
+                            <body>
+                                <div class='container'>
+                                    <h2 class='header'>Confirm Your Email</h2>
+                                    <p>Hello <strong>{user.UserName}</strong>,</p>
+                                    <p>Thank you for registering. Please confirm your email address by clicking the button below:</p>
+                                    <p style='text-align:center;'>
+                                        <a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}'
+                                           style='display:inline-block; padding:12px 24px; margin-top:20px; background-color:#28a745; color:#ffffff !important; text-decoration:none; border-radius:5px; font-weight:bold;'>
+                                           Confirm Email
+                                        </a>
+                                    </p>
+                                    <p>If the button doesn’t work, you can also copy and paste this link into your browser:</p>
+                                    <p><a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}'>{HtmlEncoder.Default.Encode(emailConfirmUrl)}</a></p>
+                                    <div class='footer'>
+                                        <p>© {DateTime.UtcNow.Year} Your Company Name. All rights reserved.</p>
+                                    </div>
+                                </div>
+                            </body>
+                            </html>";
+
+
+                await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+
+                // 2️⃣ Generate Phone OTP
+                var otp = new Random().Next(100000, 999999).ToString();
+                user.PhoneOtp = otp;
+                user.PhoneOtpExpiry = DateTime.UtcNow.AddMinutes(5);
+                await userManager.UpdateAsync(user);
+
+                // TODO: Send OTP via SMS provider here (Twilio, Nexmo, etc.)
+
+                return Ok(new ApiResponseMessage { FriendlyMessage = "User registered. Please confirm email and phone OTP.", IsSuccess = true });
+
+
+
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest(result.Errors.Select(e => e.Description)); // Return validation errors
+
+                return BadRequest(new ApiResponseMessage { FriendlyMessage = "Couldn't rgister the user", IsSuccess = false, ErorrCode = "500", DetailedError = ex.Message });
             }
-            //return Ok(); // Placeholder for registration logic
+
         }
- 
-        
+
+
+
         [HttpPost]
         [Route("login")]
         [MapToApiVersion("1.0")]
@@ -150,7 +263,7 @@ namespace WebAPI.Controllers
             if (user == null)
             {
                 //user = await userManager.FindByEmailAsync(model.Email);
-                if(user==null)
+                if (user == null)
                     return Unauthorized("Invalid login credentials.");
             }
             var passwordCheck = await userManager.CheckPasswordAsync(user, model.Password);
@@ -308,127 +421,7 @@ namespace WebAPI.Controllers
             return Ok("Password reset link has been sent to your email.");
         }
 
-        [HttpPost("register")]
-        [MapToApiVersion("1.0")] // only available in v1
-        public async Task<IActionResult> Register([FromBody] UserDto model)
-        {
 
-            var user = new User
-            {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Passport = model.Passport,
-                IssueDate = model.IssueDate,
-                ExpiryDate = model.ExpiryDate,
-                DateOfBirth = model.DateOfBirth,
-                Address = model.Address,
-                ProfilePictureUrl = model.ProfilePictureUrl,
-                CountryId = model.CountryId,
-                AdministrativeDivisionId = model.AdministrativeDivisionId,
-                PhoneNumber = model.PhoneNumber,
-                isProfileCompleted = model.isProfileCompleted,
-                UserName = model.Email,
-                Email = model.Email,
-            };
-
-            var result = await userManager.CreateAsync(user, GlobalData.GenerateRandomPassword(8));
-            if (!result.Succeeded) return BadRequest(result.Errors);
-
-
-
-
-            // 2️⃣ Build reset page link
-            //var websiteUrl = configuration["HajjManagement:WebSiteURL"];  // e.g., https://localhost:7273/
-            //var confirmEmailPath = configuration["HajjManagement:ConfirmEmailURL"]; // e.g., User/ResetPassword/
-
-            // Trim trailing slashes to avoid double slashes
-            //websiteUrl = websiteUrl?.TrimEnd('/');
-            //confirmEmailPath = confirmEmailPath?.Trim('/');
-
-            //var resetUrl = $"{websiteUrl}/{resetPasswordPath}/{user.Email}/{encodedToken}";
-
-            // 1️⃣ Generate Email Confirmation Token
-            var emailToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedEmailToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(emailToken));
-            var emailConfirmUrl = $"{Request.Scheme}://{Request.Host}/api/v1/auth/confirm-email?userId={user.Id}&token={encodedEmailToken}";
-            //emailConfirmUrl= $"{websiteUrl}/{confirmEmailPath}/{user.Id}/{encodedEmailToken}";
-
-
-            var emailBody = @$"
-                            <html>
-                            <head>
-                                <meta charset='UTF-8'>
-                                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                                <style>
-                                    body {{
-                                        font-family: Arial, sans-serif;
-                                        background-color: #f6f9fc;
-                                        padding: 30px;
-                                        color: #333;
-                                    }}
-                                    .container {{
-                                        background: #ffffff;
-                                        border-radius: 8px;
-                                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                                        max-width: 600px;
-                                        margin: auto;
-                                        padding: 30px;
-                                    }}
-                                    .header {{
-                                        text-align: center;
-                                        color: #28a745;
-                                    }}
-                                    .button {{
-                                        display: inline-block;
-                                        padding: 12px 24px;
-                                        margin-top: 20px;
-                                        background-color: #28a745;
-                                        color: #fff;
-                                        text-decoration: none;
-                                        border-radius: 5px;
-                                        font-weight: bold;
-                                    }}
-                                    .footer {{
-                                        font-size: 12px;
-                                        color: #777;
-                                        text-align: center;
-                                        margin-top: 30px;
-                                    }}
-                                </style>
-                            </head>
-                            <body>
-                                <div class='container'>
-                                    <h2 class='header'>Confirm Your Email</h2>
-                                    <p>Hello <strong>{user.UserName}</strong>,</p>
-                                    <p>Thank you for registering. Please confirm your email address by clicking the button below:</p>
-                                    <p style='text-align:center;'>
-                                        <a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}'
-                                           style='display:inline-block; padding:12px 24px; margin-top:20px; background-color:#28a745; color:#ffffff !important; text-decoration:none; border-radius:5px; font-weight:bold;'>
-                                           Confirm Email
-                                        </a>
-                                    </p>
-                                    <p>If the button doesn’t work, you can also copy and paste this link into your browser:</p>
-                                    <p><a href='{HtmlEncoder.Default.Encode(emailConfirmUrl)}'>{HtmlEncoder.Default.Encode(emailConfirmUrl)}</a></p>
-                                    <div class='footer'>
-                                        <p>© {DateTime.UtcNow.Year} Your Company Name. All rights reserved.</p>
-                                    </div>
-                                </div>
-                            </body>
-                            </html>";
-
-
-            await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
-
-            // 2️⃣ Generate Phone OTP
-            var otp = new Random().Next(100000, 999999).ToString();
-            user.PhoneOtp = otp;
-            user.PhoneOtpExpiry = DateTime.UtcNow.AddMinutes(5);
-            await userManager.UpdateAsync(user);
-
-            // TODO: Send OTP via SMS provider here (Twilio, Nexmo, etc.)
-
-            return Ok(new { Message = "User registered. Please confirm email and phone OTP." });
-        }
 
         [HttpPost("confirm-phone")]
         [MapToApiVersion("1.0")] // only available in v1

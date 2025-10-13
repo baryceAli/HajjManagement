@@ -35,10 +35,11 @@ namespace Infrastructure
                 new Role { Name = RoleNames.CompanySuperAdmin, NormalizedName = RoleNames.CompanySuperAdmin.ToUpper(), Description = "Create users of all levels" },
                 new Role { Name = RoleNames.CompanyAdmin, NormalizedName = RoleNames.CompanyAdmin.ToUpper(), Description = "Create users of all levels under him" },
                 new Role { Name = RoleNames.CompanyDataEntry, NormalizedName = RoleNames.CompanyDataEntry.ToUpper(), Description = "Modify data of all levels" },
-                new Role { Name = RoleNames.SuperAdmin, NormalizedName = RoleNames.SuperAdmin.ToUpper(), Description = "Create users of all levels within a country" },
-                new Role { Name = RoleNames.Admin, NormalizedName = RoleNames.Admin.ToUpper(), Description = "Create users of all levels under him within a country" },
-                new Role { Name = RoleNames.DataEntry, NormalizedName = RoleNames.DataEntry.ToUpper(), Description = "Modify data of all levels within a country" },
-                new Role { Name = RoleNames.Supervisor, NormalizedName = RoleNames.Supervisor.ToUpper(), Description = "Enter Guests Data within his supervision" }
+                new Role { Name = RoleNames.CountrySuperAdmin, NormalizedName = RoleNames.CountrySuperAdmin.ToUpper(), Description = "Create users of all levels within a country" },
+                new Role { Name = RoleNames.CountryAdmin, NormalizedName = RoleNames.CountryAdmin.ToUpper(), Description = "Create users of all levels under him within a country" },
+                new Role { Name = RoleNames.CountryDataEntry, NormalizedName = RoleNames.CountryDataEntry.ToUpper(), Description = "Modify data of all levels within a country" },
+                new Role { Name = RoleNames.CountrySupervisor, NormalizedName = RoleNames.CountrySupervisor.ToUpper(), Description = "Enter Guests Data within his supervision" },
+                new Role { Name = RoleNames.Guest, NormalizedName = RoleNames.Guest.ToUpper(), Description = "Guest can view some data only" }
 
             };
             try

@@ -10,10 +10,10 @@ namespace CoreBusiness.Utils
         public const string CompanySuperAdmin = "CompanySuperAdmin";
         public const string CompanyAdmin = "CompanyAdmin";
         public const string CompanyDataEntry = "CompanyDataEntry";
-        public const string SuperAdmin = "SuperAdmin";
-        public const string Admin = "Admin";
-        public const string DataEntry = "DataEntry";
-        public const string Supervisor = "Supervisor";
+        public const string CountrySuperAdmin = "SuperAdmin";
+        public const string CountryAdmin = "Admin";
+        public const string CountryDataEntry = "DataEntry";
+        public const string CountrySupervisor = "Supervisor";
         public const string Guest = "Guest";
 
     }

@@ -17,139 +17,154 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<LayoutView Layout="@layoutType">
-    <ChildContent>
 
-<div class="card show" dir="rtl">
-    <div class="card-header">
-        <div class="row d-flex justify-content-between">
-            <div class="col-10">
+        <div class="card show" dir="rtl">
+            <div class="card-header">
+                <div class="row d-flex justify-content-between">
+                    <div class="col-10">
 
-                <h3>@title</h3>
-            </div>
+                        <h3>@title</h3>
+                    </div>
 
-            <div class="col-2 text-center">
-                <label for="profileUpload" style="cursor:pointer;">
-                    <img src=' @(string.IsNullOrEmpty(user.ProfilePictureUrl) ? "_content/HajjManagement.Shared/images/user/profile/default.png" : user.ProfilePictureUrl)'
-                         alt="Profile image"
-                         width="50"
-                         class="rounded-circle border" />
-                </label>
-                <div>
-                    <a href="javascript:void(0)" @onclick="TriggerFileUpload">Change</a>
+                    <div class="col-2 text-center">
+                        <label for="profileUpload" style="cursor:pointer;">
+                            <img src=' @(string.IsNullOrEmpty(user.ProfilePictureUrl) ? "_content/HajjManagement.Shared/images/user/profile/default.png" : user.ProfilePictureUrl)'
+                                 alt="Profile image"
+                                 width="50"
+                                 class="rounded-circle border" />
+                        </label>
+                        <div>
+                            <a href="javascript:void(0)" @onclick="TriggerFileUpload">Change</a>
+                        </div>
+                        <input type="file" id="profileUpload" @ref="fileInput" style="display:none"
+                               @onchange="OnProfileSelected" accept="image/*" />
+                    </div>
+
                 </div>
-                <input type="file" id="profileUpload" @ref="fileInput" style="display:none"
-                       @onchange="OnProfileSelected" accept="image/*" />
+            </div>
+            <div>
+
+
+
+                <EditForm Model="user" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                    @if (Id.HasValue && Id > 0)
+                    {
+
+                    }
+
+                    @* @bind-Value="user.AdministrativeDivisionId" *@
+                    <CascadingDivisionSelect Value="@user.AdministrativeDivisionId"
+                                             ValueChanged="OnAdminstrativeDivisionChange"
+                                             Disabled="@isDisabled" />
+
+
+                    <div class="row mt-3 mx-2">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">الاسم الأول</label>
+                                <InputText id="Name" class="form-control" @bind-Value="user.FirstName" />
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">الاسم الإخير</label>
+                                <InputText id="Name" class="form-control" @bind-Value="user.LastName" />
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">رقم الهاتف</label>
+                                <InputText id="Name" class="form-control" @bind-Value="user.PhoneNumber" />
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">الإيميل</label>
+                                <InputText id="Name" disabled="@(Id > 0)" class="form-control" @bind-Value="user.Email" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row  mt-3 mx-2">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">رقم الجواز</label>
+                                <InputText id="Name" class="form-control" @bind-Value="user.Passport" />
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">مكان الإصدار</label>
+                                <InputText id="Name" class="form-control" @bind-Value="user.IssuePlace" />
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">تاريخ الإصدار</label>
+                                <InputDate id="Name" class="form-control" @bind-Value="user.IssueDate" />
+                            </div>
+                        </div>
+
+
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="Name" class="form-label">تاريخ الانتهاء</label>
+                                <InputDate id="Name" class="form-control" @bind-Value="user.ExpiryDate" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3 mx-2">
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">العنوان</label>
+                            <InputTextArea id="Name" class="form-control" @bind-Value="user.Address" />
+                        </div>
+                    </div>
+
+                    <div class="mt-3 mx-2">
+                        <ValidationSummary></ValidationSummary>
+                    </div>
+                    <div class="mt-3 mx-2 mb-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+                        <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+                    </div>
+
+
+                </EditForm>
             </div>
 
         </div>
-    </div>
-    <div>
-        <EditForm Model="user" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator></DataAnnotationsValidator>
 
-                    @if(Id.HasValue && Id > 0)
-                    {
-                        
-                    }
-
-                                     @* @bind-Value="user.AdministrativeDivisionId" *@
-                    <CascadingDivisionSelect Value="@user.AdministrativeDivisionId"
-                                      ValueChanged="OnAdminstrativeDivisionChange"
-                                     Disabled="@isDisabled" />
+        <ErrorMessage @ref="errorMessage"
+                      Header="@ModalHeader"
+                      Message="@ModalMessage"
+                      ModalButtonCaption="@ModalButtonCaption"
+                      Details="@ModalDetails"
+                      IsError="@isError"
+                      OnModalButtonClicked="OnModalButtonClicked" />
 
 
-            <div class="row mt-3 mx-2">
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">الاسم الأول</label>
-                        <InputText id="Name" class="form-control" @bind-Value="user.FirstName" />
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">الاسم الإخير</label>
-                        <InputText id="Name" class="form-control" @bind-Value="user.LastName" />
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">رقم الهاتف</label>
-                        <InputText id="Name" class="form-control" @bind-Value="user.PhoneNumber" />
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">الإيميل</label>
-                        <InputText id="Name" disabled="@(Id>0)" class="form-control" @bind-Value="user.Email" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="row  mt-3 mx-2">
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">رقم الجواز</label>
-                        <InputText id="Name" class="form-control" @bind-Value="user.Passport" />
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">مكان الإصدار</label>
-                        <InputText id="Name" class="form-control" @bind-Value="user.IssuePlace" />
-                    </div>
-                </div>
-
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">تاريخ الإصدار</label>
-                        <InputDate id="Name" class="form-control" @bind-Value="user.IssueDate" />
-                    </div>
-                </div>
-
-
-                <div class="col">
-                    <div class="mb-3">
-                        <label for="Name" class="form-label">تاريخ الانتهاء</label>
-                        <InputDate id="Name" class="form-control" @bind-Value="user.ExpiryDate" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-3 mx-2">
-                <div class="mb-3">
-                    <label for="Name" class="form-label">العنوان</label>
-                    <InputTextArea id="Name" class="form-control" @bind-Value="user.Address" />
-                </div>
-            </div>
-
-            <div class="mt-3 mx-2">
-                <ValidationSummary></ValidationSummary>
-            </div>
-            <div class="mt-3 mx-2 mb-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
-                <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
-            </div>
-
-
-        </EditForm>
-    </div>
-
-</div>
-
-    </ChildContent>
-</LayoutView>
 @code {
+    private ErrorMessage errorMessage;
+    private string ModalButtonCaption = string.Empty;
+    private string ModalHeader = string.Empty;
+    private string ModalMessage = string.Empty;
+    private string ModalDetails = string.Empty;
+
+    private bool isError = false;
     private int SelectedDivisionId;
     private bool isDisabled = false;
     [Parameter]
     public int? Id { get; set; }
     private string title = "تسجيل مستخدم جديد";
-    private User? userDB = new();
+    // private User? userDB = new();
     private UserDto? user = new();
     private bool isAdmin = false;
     private Type layoutType = typeof(LoginLayout);
@@ -161,14 +176,14 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        var authState =await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var authUser = authState.User;
-        isAdmin = authUser.Identity!.IsAuthenticated && (authUser.IsInRole(CoreBusiness.Utils.RoleNames.Admin) ||
+        isAdmin = authUser.Identity!.IsAuthenticated && (authUser.IsInRole(CoreBusiness.Utils.RoleNames.CountryAdmin) ||
                     authUser.IsInRole(CoreBusiness.Utils.RoleNames.MainAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.SuperAdmin) ||
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CountrySuperAdmin) ||
                     authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanyAdmin) ||
                     authUser.IsInRole(CoreBusiness.Utils.RoleNames.MainSuperAdmin) ||
-                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanySuperAdmin)) 
+                    authUser.IsInRole(CoreBusiness.Utils.RoleNames.CompanySuperAdmin))
                     ? true : false;
 
         layoutType = isAdmin ? typeof(MainLayout) : typeof(LoginLayout);
@@ -178,7 +193,7 @@
         if (Id > 0)
         {
             title = "تعديل بيانات مستخدم";
-            userDB = await UserService.GetByIdAsync((int)Id);
+            var userDB = await UserService.GetByIdAsync((int)Id);
             user = UserCustomService.GetUserDto(userDB);
             if (user.CountryId == 0)
             {
@@ -189,12 +204,56 @@
     private async Task HandleValidSubmit()
     {
         // if()
-        var adm = await AdministrativeDivisionService.GetByIdAsync(user.AdministrativeDivisionId);
-        user.CountryId = adm?.CountryId??0;
-        var uss = user;
-        var ss = "";
-    }
+        try
+        {
+            ModalHeader = "Add new user";
 
+            var adm = await AdministrativeDivisionService.GetByIdAsync(user.AdministrativeDivisionId);
+            user.CountryId = adm?.CountryId ?? 0;
+            var userDb = UserCustomService.GetUser(user);
+
+            ApiResponseMessage responseMessage = await UserService.GenericEndPointAsync<ApiResponseMessage>(userDb, "V1","user", "register",HttpMethod.Post);
+            // ModalMessage = $"تم اضافة حسابك بنجاح {resUser.FirstName} {resUser.LastName}";
+            // ModalDetails = $"تم ارسال رسال في ايميلك {resUser.Email}. قم بالنقر على زر تأكيد الايميل حتى تكتمل عملية التسجيل";
+            if (responseMessage.IsSuccess)
+            {
+                ModalButtonCaption = "Ok";
+                isError = false;
+                ModalHeader = "Register new user";
+                ModalMessage = "New user registered successfully";
+                ModalDetails = $"Confirmation link has been sent to email {userDb.Email} ";
+                await errorMessage.ShowAsync();
+            }
+            else
+            {
+                isError = true;
+                ModalButtonCaption = "Ok";
+                ModalHeader = "Register new user";
+                ModalMessage = responseMessage.FriendlyMessage;
+                ModalDetails = $"{responseMessage.SytemMessage}";
+                await errorMessage.ShowAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+
+            isError = true;
+            if (isError)
+            {
+                ModalButtonCaption = "موافق";
+                ModalHeader = "Add new user";
+                ModalMessage = ex.Message;
+                ModalDetails = string.Empty;// ex.ToString();
+                await errorMessage.ShowAsync();
+            }
+            return;
+        }
+    }
+    private async Task OnModalButtonClicked()
+    {
+        await errorMessage.HideAsync();
+        // NavigationManager.NavigateTo("/");
+    }
     private void onCancel()
     {
         NavigationManager.NavigateTo("/User/List");

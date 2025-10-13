@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HajjManagement.Shared.Services
@@ -96,94 +97,118 @@ namespace HajjManagement.Shared.Services
             var response = await client.DeleteAsync($"api/{version}/{typeof(T).Name}/{id}");
             return response.IsSuccessStatusCode;
         }
-        //private readonly HttpClient _httpClient;
-        //private readonly string _endpoint;
 
-        //public GenericAPIService(HttpClient httpClient)
-        //{
-        //    _httpClient = httpClient;
-        //    // Extract the endpoint from the BaseAddress path
-        //    _endpoint = httpClient.BaseAddress?.AbsolutePath.Trim('/') ?? throw new ArgumentNullException("BaseAddress must contain endpoint path.");
-        //}
+        public async Task<TResponse> GenericEndPointAsync<TResponse>(
+                                            object requestData = null,
+                                            string version = "v1",
+                                            string controller = "",
+                                            string endpoint = "",
+                                            HttpMethod method = null
+            )
+        {
 
-        //public async Task<IEnumerable<T>> GetAllAsync()
-        //{
-        //    //var ss = GlobalData.Token;
-        //    //_httpClient.DefaultRequestHeaders.Accept.Clear();
-        //    //_httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
-        //    SetAuthHeader();
-        //    return await _httpClient.GetFromJsonAsync<IEnumerable<T>>($"") ?? new List<T>();
-        //}
+            try
+            {
+                var client = GetClient();
+                SetAuthHeader(client);
 
-        //public async Task<T> GetByIdAsync(int id)
-        //{
-        //    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
-        //    return await _httpClient.GetFromJsonAsync<T>($"{id}");
+                if (string.IsNullOrWhiteSpace(controller))
+                    throw new ArgumentException("Controller name cannot be empty.", nameof(controller));
 
-        //}
+                if (string.IsNullOrWhiteSpace(endpoint))
+                    throw new ArgumentException("Endpoint cannot be empty.", nameof(endpoint));
 
-        //public async Task<T> AddAsync(T entity)
-        //{
-        //    try
-        //    {
-        //        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
-        //        var response = await _httpClient.PostAsJsonAsync($"", entity);
+                var url = $"api/{version}/{controller}/{endpoint}";
+                HttpResponseMessage response;
 
-        //        response.EnsureSuccessStatusCode();
-        //        return await response.Content.ReadFromJsonAsync<T>();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var mes=ex.ToString();
-        //        //return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
-        //        throw;
-        //    }
-        //}
-        //public async Task<AuthResponse> LoginAsync(T entity)
-        //{
-        //    try
-        //    {
-        //        var response = await _httpClient.PostAsJsonAsync($"", entity);
+                method ??= HttpMethod.Post; // default is POST
 
-        //        // Read response content first
-        //        var content = await response.Content.ReadAsStringAsync();
+                // 🔹 Handle common HTTP methods
+                if (method == HttpMethod.Post)
+                {
+                    response = await client.PostAsJsonAsync(url, requestData);
+                }
+                else if (method == HttpMethod.Put)
+                {
+                    response = await client.PutAsJsonAsync(url, requestData);
+                }
+                else if (method == HttpMethod.Get)
+                {
+                    if (requestData != null)
+                    {
+                        var query = string.Join("&", requestData.GetType().GetProperties()
+                            .Select(p => $"{p.Name}={Uri.EscapeDataString(p.GetValue(requestData)?.ToString() ?? string.Empty)}"));
+                        url += $"?{query}";
+                    }
+                    response = await client.GetAsync(url);
+                }
+                else if (method == HttpMethod.Delete)
+                {
+                    response = await client.DeleteAsync(url);
+                }
+                else
+                {
+                    throw new NotSupportedException($"HTTP method {method} is not supported.");
+                }
 
-        //        if (!response.IsSuccessStatusCode)
-        //        {
-        //            // You can throw a detailed exception or handle it
-        //            throw new Exception($"Login failed: {response.StatusCode} - {content}");
-        //        }
-        //        //response.EnsureSuccessStatusCode();
-        //        return await response.Content.ReadFromJsonAsync<AuthResponse>();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var mes = ex.ToString();
-        //        //return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
-        //        throw;
-        //    }
-        //}
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "text/plain";
+                var content = await response.Content.ReadAsStringAsync();
 
-        //public async Task<T> UpdateAsync(T entity)
-        //{
-        //    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
-        //    var response = await _httpClient.PutAsJsonAsync($"", entity);
-        //    response.EnsureSuccessStatusCode();
-        //    return await response.Content.ReadFromJsonAsync<T>();
-        //}
+                // Throw if not success
+                if (!response.IsSuccessStatusCode)
+                {
+                    //throw new Exception($"Request failed ({response.StatusCode}): {content}");
+                }
 
-        //public async Task<bool> DeleteAsync(int id)
-        //{
-        //    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", GlobalData.Token);
-        //    var response = await _httpClient.DeleteAsync($"{id}");
-        //    return response.IsSuccessStatusCode;
-        //}
-        //private void SetAuthHeader()
-        //{
-        //    _httpClient.DefaultRequestHeaders.Remove("Authorization");
-        //    if (!string.IsNullOrWhiteSpace(GlobalData.Token))
-        //        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {GlobalData.Token}");
-        //}
+                // 🔹 Handle empty response
+                if (string.IsNullOrWhiteSpace(content))
+                    return default!;
 
+                // 🔹 Auto-handle based on content type
+                if (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
+                {
+                    return System.Text.Json.JsonSerializer.Deserialize<TResponse>(
+                        content,
+                        new System.Text.Json.JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        })!;
+                }
+                else if (contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase) ||
+                         contentType.Contains("text/plain", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Handle plain string or HTML
+                    if (typeof(TResponse) == typeof(string))
+                        return (TResponse)(object)content;
+
+                    // Handle JSON object
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+
+                    try
+                    {
+                        return JsonSerializer.Deserialize<TResponse>(content, options)!;
+                    }
+                    catch (JsonException ex)
+                    {
+                        throw new Exception(
+                            $"Failed to deserialize JSON from endpoint '{controller}/{endpoint}' to {typeof(TResponse).Name}: {ex.Message}\nResponse Content: {content}",
+                            ex
+                        );
+                    }
+                }
+
+                // Unknown content type
+                throw new Exception($"Unsupported content type: {contentType}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error calling endpoint '{controller}/{endpoint}': {ex.Message}", ex);
+            }
+        }
+
+        
     }
 }

@@ -1,4 +1,4 @@
-﻿@page "/login"
+﻿@page "/"
 @layout LoginLayout
 @using CoreBusiness
 @using CoreBusiness.Dtos
@@ -76,13 +76,11 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        var authState=await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        authState.User.
-        // await HandleLogin();
+
     }
     private async Task HandleLogin()
     {
-        var loginResponse = await userService.LoginAsync(login,"v1","user");
+        AuthResponse loginResponse = await userService.LoginAsync(login,"v1","user");
 
         if (loginResponse != null)
         {
@@ -95,18 +93,14 @@
 
             // NavigationManager.NavigateTo("/");
 
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("/home");
             return;
         }
-        User user = new User() // Change TempUser to User to match type definition
+        else
         {
-            Id = 1,
-            Address = "Test Address",
-            FirstName = "Test",
-            LastName = "User",
+            //Show Alert than login has failed
+        }
 
-
-        };
 
         
         // Handle login logic here

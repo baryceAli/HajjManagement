@@ -16,8 +16,14 @@ namespace HajjManagement.Shared.Services
         //public async Task<T> AddAsync(string additionalURLPart, T entity)
         Task<T> UpdateAsync(T entity, string version = "v1");
         Task<bool> DeleteAsync(int id, string version = "v1");
-
-
+        //Task<T> GenericEndPointAsync(T entity, string version = "v1",string controller="", string endPoint = "");
+        Task<TResponse> GenericEndPointAsync<TResponse>(
+            object requestData = null,
+            string version = "v1",
+            string controller = "",
+            string endpoint = "",
+            HttpMethod method = null
+        );
 
         //Task<IEnumerable<T>> GetAllAsync();
         //Task<T> GetByIdAsync(int id);

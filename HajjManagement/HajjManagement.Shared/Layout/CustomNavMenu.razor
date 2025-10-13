@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using CoreBusiness.Utils
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject IHttpContextAccessor HttpContextAccessor
 <nav class="navbar navbar-dark shadow-sm d-lg-flex flex-column p-0 position-relative">
     <div class="container-fluid d-flex justify-content-between align-items-center p-2">
         <a class="navbar-brand fw-semibold text-white" href="">HajjManagement</a>
@@ -14,56 +14,102 @@
 
     <!-- Sidebar -->
     <div class="collapse d-lg-block sidebar w-100" id="sidebarMenu">
-        <AuthorizeView Roles="Supervisor">
-            <Authorized>
+        <AuthorizeView>
+            <Authorized Context="cntxt">
                 <nav class="nav flex-column p-2">
-                    <!-- Home -->
+
+                <!-- Home -->
+                <AuthorizeView>
+                    <Authorized>
                     <div class="nav-item">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="" Match="NavLinkMatch.All">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="/home" Match="NavLinkMatch.All">
                             <i class="bi bi-house-door-fill text-white"></i>
                             <span class="text-white">الرئيسية</span>
                         </NavLink>
                     </div>
+                    </Authorized>
+                    <NotAuthorized></NotAuthorized>
+                </AuthorizeView>
 
+                    <!-- Home -->
+                    <AuthorizeView Roles="@( $"{RoleNames.MainSuperAdmin},{RoleNames.MainAdmin},{RoleNames.CountrySuperAdmin},{RoleNames.CountryAdmin},{RoleNames.CountrySupervisor},{RoleNames.CompanySuperAdmin},{RoleNames.CompanyAdmin}")">
+                        <Authorized>
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="/dashboard" Match="NavLinkMatch.All">
+                                    <i class="bi bi-house-door-fill text-white"></i>
+                                    <span class="text-white">Dashboard</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized></NotAuthorized>
+                    </AuthorizeView>
                     <!-- Countries -->
-                    <div class="nav-item">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Country/List">
-                            <i class="bi bi-flag text-white"></i>
-                            <span class="text-white">الدول</span>
-                        </NavLink>
-                    </div>
+                    <AuthorizeView Roles="@( $"{RoleNames.MainSuperAdmin},{RoleNames.MainAdmin}" )">
+                        <Authorized>
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Country/List">
+                                    <i class="bi bi-flag text-white"></i>
+                                    <span class="text-white">الدول</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized></NotAuthorized>
+                    </AuthorizeView>
 
                     <!-- Administrative Structure -->
-                    <div class="nav-item">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="CountryStructure/List">
-                            <i class="bi bi-diagram-3 text-white"></i>
-                            <span class="text-white">مسميات الهيكل الإداري</span>
-                        </NavLink>
-                    </div>
+                    <AuthorizeView Roles="@($"{RoleNames.MainSuperAdmin},{RoleNames.MainAdmin}")">
+                        <Authorized>
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="CountryStructure/List">
+                                    <i class="bi bi-diagram-3 text-white"></i>
+                                    <span class="text-white">مسميات الهيكل الإداري</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized></NotAuthorized>
+                    </AuthorizeView>
 
                     <!-- Administrative Division -->
-                    <div class="nav-item">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="AdministrativeDivision/List">
-                            <i class="bi bi-diagram-3-fill text-white"></i>
-                            <span class="text-white">الهيكل الإداري</span>
-                        </NavLink>
-                    </div>
+                    <AuthorizeView Roles="@($"{RoleNames.MainSuperAdmin},{RoleNames.MainAdmin},{RoleNames.CountrySuperAdmin},{RoleNames.CountryAdmin}")">
+                        <Authorized>
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="AdministrativeDivision/List">
+                                    <i class="bi bi-diagram-3-fill text-white"></i>
+                                    <span class="text-white">الهيكل الإداري</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+
+                        </NotAuthorized>
+                    </AuthorizeView>
+
 
                     <!-- Bag -->
-                    <div class="nav-item">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="bag/List">
-                            <i class="bi bi-briefcase-fill text-white"></i>
-                            <span class="text-white">الحقيبة</span>
-                        </NavLink>
-                    </div>
+                    <AuthorizeView Roles="@($"{RoleNames.MainSuperAdmin},{RoleNames.MainAdmin}")">
+                        <Authorized>
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="bag/List">
+                                    <i class="bi bi-briefcase-fill text-white"></i>
+                                    <span class="text-white">الحقيبة</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized></NotAuthorized>
+                    </AuthorizeView>
 
                     <!-- Contracts -->
-                    <div class="nav-item">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Contract/List">
-                            <i class="bi bi-file-earmark-text-fill text-white"></i>
-                            <span class="text-white">العقود</span>
-                        </NavLink>
-                    </div>
+                    <AuthorizeView Roles="@($"{RoleNames.MainSuperAdmin},{RoleNames.MainAdmin}")">
+                        <Authorized>
+                            <div class="nav-item">
+                                <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="Contract/List">
+                                    <i class="bi bi-file-earmark-text-fill text-white"></i>
+                                    <span class="text-white">العقود</span>
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized></NotAuthorized>
+                    </AuthorizeView>
 
                     <!-- Guests -->
                     <div class="nav-item">
@@ -83,7 +129,7 @@
 
                     <!-- User Management -->
                     <AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
-                        <Authorized Context="cntxt">
+                        <Authorized>
                             <div class="nav-item">
                                 <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="User/List">
                                     <i class="bi bi-people-fill text-white"></i>
@@ -101,10 +147,10 @@
                         </NavLink>
                     </div>
                     <!-- Change Password -->
-                    <div class="nav-item mt-2 border-top pt-2">
-                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="User/ChangePassword">
-                            <i class="bi bi-key-fill text-white"></i>
-                            <span class="text-white">تغيير كلمة المرور</span>
+                    <div class="nav-item mt-2 pt-2">
+                        <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" @onclick="Logout">
+                            <i class="bi bi-door-open text-white"></i>
+                            <span class="text-white">تسجيل خروج</span>
                         </NavLink>
                     </div>
                 </nav>
@@ -113,20 +159,21 @@
     </div>
 </nav>
 @code {
-
+    private AuthenticationState AuthState;
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState = await ((CustomAuthStateProvider)AuthenticationStateProvider).GetAuthenticationStateAsync();
+    }
     private async Task Logout()
     {
-        // Sign out using the authentication scheme (default is Cookies)
-        await HttpContextAccessor.HttpContext!.SignOutAsync();
 
-        // Notify the app to refresh the auth state
-        if (AuthenticationStateProvider is RevalidatingIdentityAuthenticationStateProvider<IdentityUser> revalidatingProvider)
-        {
-            // Force refresh
-            await revalidatingProvider.GetAuthenticationStateAsync();
-        }
+        // Sign out using the authentication scheme (default is Cookies)
+        ((CustomAuthStateProvider)AuthenticationStateProvider).NotifyUserLogout();
+
+
+
 
         // Redirect to login page
-        Navigation.NavigateTo("/login", forceLoad: true);
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

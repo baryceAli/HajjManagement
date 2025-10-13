@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/Home"
 @using HajjManagement.Shared.Services
 @using HajjManagement.Shared.Utilities
 @using Microsoft.AspNetCore.Components.Authorization
@@ -18,15 +18,7 @@ Welcome to your new app running on <em>@factor</em> using <em>@platform</em>.
 
     protected override void OnInitialized()
     {
-        var authState= AuthenticationStateProvider.GetAuthenticationStateAsync().Result;
-        var claims = authState.User.IsInRole(CoreBusiness.Utils.RoleNames.MainSuperAdmin);
-        // base.OnInitialized();
-        if(! authState.User.Identity.IsAuthenticated)
-        {
-            // Redirect to login page if user is not authenticated
-            NavigationManager.NavigateTo("Login", true);
-            return;
-        }
+        
     }
 
 }
