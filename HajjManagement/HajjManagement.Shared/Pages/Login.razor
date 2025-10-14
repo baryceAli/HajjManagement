@@ -70,7 +70,7 @@
         login = new LoginDto
         {
             LoginCode = "MainSuperAdmin",
-            Password = "Admin@123"
+            Password = "Admin@1234"
         };
         // base.OnInitialized();
     }
@@ -107,4 +107,11 @@
         
         // Handle login logic here
     }
+
+//Usage
+//Claims
+        //var userClaims = await userManager.GetClaimsAsync(user);
+        //bool canEditContracts = userClaims.Any(c => c.Type == "Permission" && c.Value == "Contracts.Edit");
+
+
 }

@@ -180,7 +180,8 @@ namespace WebAPI
                 await db.Database.MigrateAsync();   // make sure schema exists
 
                 var services = scope.ServiceProvider;
-                await SeedData.SeedRolesAsync(services);
+                //await SeedData.SeedRolesAsync(services);
+                await SeedData.SeedMainSuperAdminAsync(services);
             }
 
 
