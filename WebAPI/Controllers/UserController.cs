@@ -62,6 +62,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpGet]
+        [MapToApiVersion("1.0")] // only available in v2
         public async Task<IActionResult> Get()
         {
             var users = await service.GetAllAsync();
@@ -69,6 +70,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [MapToApiVersion("1.0")] // only available in v2
         public async Task<IActionResult> Get(int id)
         {
 
@@ -76,6 +78,35 @@ namespace WebAPI.Controllers
             return Ok(user);
         }
 
+
+        [HttpGet]
+        [Route("Email/{email}")]
+        [MapToApiVersion("1.0")] // only available in v2
+        public async Task<IActionResult> GetUser(string email)
+        {
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+                return BadRequest("User not found");
+
+            return Ok(user);
+        }
+
+        [HttpGet]
+        [Route("Roles/{email}")]
+        [MapToApiVersion("1.0")] // only available in v2
+        public async Task<IActionResult> GetRoles(string email)
+        {
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null)
+                return BadRequest("User not found");
+
+            //roleManager.GetClaimsAsync()
+           var claims= await userManager.GetClaimsAsync(user);
+            return Ok(user);
+        }
+        
         [HttpPost("register")]
         [MapToApiVersion("1.0")] // only available in v2
         public async Task<IActionResult> Register([FromBody] UserDto model)
@@ -195,8 +226,14 @@ namespace WebAPI.Controllers
                             </body>
                             </html>";
 
+                try
+                {
+                    await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+                }
+                catch(Exception ex)
+                {
 
-                await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+                }
 
                 // 2️⃣ Generate Phone OTP
                 var otp = new Random().Next(100000, 999999).ToString();
@@ -574,6 +611,7 @@ namespace WebAPI.Controllers
 
         [HttpPost]
         [Route("logout")]
+        [MapToApiVersion("1.0")] // only available in v2
         public IActionResult Logout()
         {
             // Implement logout logic here, such as invalidating the JWT token or session

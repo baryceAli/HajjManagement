@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Security;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -87,26 +89,82 @@ namespace Infrastructure
                     {
                         await userManager.AddToRoleAsync(user, role.Name!);
                     }
+                    foreach(var permission in PermissionHelper.GetAllPermissions())
+                    {
+                        await userManager.AddClaimAsync(user, new Claim("Permission", permission));
+                    }
                 }
             }
         }
-        //public static void SeedRoles(ModelBuilder modelBuilder)
-        //{
-        //    modelBuilder.Entity<Role>().HasData(
-        //            new Role { Id = 1, Name = RoleNames.MainSuperAdmin, NormalizedName = "Main Super Admin", Description = "Create users of all levels" },
-        //            new Role { Id = 2, Name = RoleNames.MainAdmin, NormalizedName = "Main Admin", Description = "Create users of all levels under him" },
-        //            new Role { Id = 3, Name = RoleNames.MainDataEntry, NormalizedName = "Main Data Entry", Description = "Modify data of all levels" },
-        //            new Role { Id = 4, Name = RoleNames.CompanySuperAdmin, NormalizedName = "Company Super Admin", Description = "Create users of all levels" },
-        //            new Role { Id = 5, Name = RoleNames.CompanyAdmin, NormalizedName = "Company Admin", Description = "Create users of all levels under him" },
-        //            new Role { Id = 6, Name = RoleNames.CompanyDataEntry, NormalizedName = "Company Data Entry", Description = "Modify data of all levels" },
-        //            new Role { Id = 7, Name = RoleNames.SuperAdmin, NormalizedName = "Super Admin", Description = "Create users of all levels within a country" },
-        //            new Role { Id = 8, Name = RoleNames.Admin, NormalizedName = "Admin", Description = "Create users of all levels under him within a country" },
-        //            new Role { Id = 9, Name = RoleNames.DataEntry, NormalizedName = "Data Entry", Description = "Modify data of all levels within a country" },
-        //            new Role { Id = 10, Name = RoleNames.Supervisor, NormalizedName = "Supervisor", Description = "Enter Guests Data within his supervision" }
 
-        //        );
-        //}
+        public static async Task SeedMainSuperAdminAsync(IServiceProvider serviceProvider)
+        {
+            string superAdminUserName="MainSuperAdmin";
+            string superAdminPassword="Admin@1234";
 
+            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<CoreBusiness.Role>>();
+
+            // 1️⃣ Ensure the MainSuperAdmin role exists
+            var superAdminRole = await roleManager.FindByNameAsync(RoleNames.MainSuperAdmin);
+            if (superAdminRole == null)
+            {
+                superAdminRole = new CoreBusiness.Role
+                {
+                    Name = RoleNames.MainSuperAdmin,
+                    NormalizedName = RoleNames.MainSuperAdmin.ToUpper(),
+                    Description = "Full access to all system functionality"
+                }; 
+                await roleManager.CreateAsync(superAdminRole);
+            }
+
+            // 2️⃣ Assign all permissions to MainSuperAdmin role
+            var allPermissions = PermissionHelper.GetAllPermissions();
+            var existingClaims = await roleManager.GetClaimsAsync(superAdminRole);
+
+            foreach (var permission in allPermissions)
+            {
+                if (!existingClaims.Any(c => c.Type == "Permission" && c.Value == permission))
+                {
+                    await roleManager.AddClaimAsync(superAdminRole, new Claim("Permission", permission));
+                }
+            }
+
+            // 3️⃣ Create MainSuperAdmin user if not exists
+            var user = await userManager.FindByNameAsync(superAdminUserName);
+            if (user == null)
+            {
+                user = new User
+                {
+                    FirstName = "Bashir",
+                    LastName = "Mohamed Ali",
+                    UserName = superAdminUserName,
+                    Passport = string.Empty,
+                    IssuePlace = string.Empty,
+                    Email = "baryce@gmail.com",
+                    Address = "",
+                    AdministrativeDivisionId = 1,
+                    PhoneNumber = "0574575491",
+                    EmailConfirmed = true // optional
+                };
+
+                var result = await userManager.CreateAsync(user, superAdminPassword);
+                if (!result.Succeeded)
+                {
+                    throw new Exception($"Failed to create super admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+
+                // 4️⃣ Assign the MainSuperAdmin role to the user
+                await userManager.AddToRoleAsync(user, RoleNames.MainSuperAdmin);
+
+                // 5️⃣ Optionally, add all permissions as claims to user (redundant if role claims are used in JWT)
+                foreach (var permission in allPermissions)
+                {
+                    await userManager.AddClaimAsync(user, new Claim("Permission", permission));
+                }
+
+            }
+        }
         public static void SeedAdministrativeDivision(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<AdministrativeDivision>().HasData(

@@ -70,7 +70,7 @@
         login = new LoginDto
         {
             LoginCode = "MainSuperAdmin",
-            Password = "Admin@123"
+            Password = "Admin@1234"
         };
         // base.OnInitialized();
     }
@@ -92,6 +92,8 @@
                 .NotifyUserAuthentication(loginResponse.Token);
 
             // NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("User/Roles/baryce@gmail.com");
+            return;
 
             NavigationManager.NavigateTo("/home");
             return;
@@ -105,4 +107,11 @@
         
         // Handle login logic here
     }
+
+//Usage
+//Claims
+        //var userClaims = await userManager.GetClaimsAsync(user);
+        //bool canEditContracts = userClaims.Any(c => c.Type == "Permission" && c.Value == "Contracts.Edit");
+
+
 }

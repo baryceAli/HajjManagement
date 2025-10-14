@@ -17,7 +17,7 @@
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             var smtpHost = _configuration["Smtp:Host"];
-            var smtpPort = int.Parse(_configuration["Smtp:Port"]);
+            var smtpPort = int.Parse(_configuration?["Smtp:Port"]?? "587");
             var smtpUser = _configuration["Smtp:Username"];
             var smtpPass = _configuration["Smtp:Password"];
             var fromEmail = _configuration["Smtp:From"];
