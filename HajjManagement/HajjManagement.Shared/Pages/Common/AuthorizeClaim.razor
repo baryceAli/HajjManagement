@@ -1,0 +1,56 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+
+<!--########################-->
+<!--Usage of this component-->
+<!--########################-->
+<!--
+    
+    <AuthorizeClaim Permission="@Permissions.Hotel.Edit">
+        <button class="btn btn-primary">Edit</button>
+    </AuthorizeClaim>
+
+    <AuthorizeClaim Permission="@Permissions.Hotel.Add">
+        <button class="btn btn-success">Add New</button>
+    </AuthorizeClaim>
+
+
+-->
+<!--########################-->
+<!--Usage of this component-->
+<!--########################-->
+
+@if (isAuthorized)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter] public string? Permission { get; set; }
+    [Parameter] public string? Role { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool isAuthorized;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        bool hasRole = false;
+        bool hasClaim = false;
+        // Check permission if specified
+        if (!string.IsNullOrEmpty(Permission))
+        {
+            hasClaim = user.HasClaim("Permission", Permission);
+        }
+
+        // Check role if specified
+        if (!string.IsNullOrEmpty(Role))
+        {
+            hasRole= user.IsInRole(Role);
+        }
+
+        isAuthorized =hasRole && hasClaim ;
+    }
+}

@@ -16,5 +16,51 @@ namespace CoreBusiness.Utils
         public const string CountrySupervisor = "Supervisor";
         public const string Guest = "Guest";
 
+        public static List<string> GetRoles()
+        {
+            return new List<string>
+            {
+                RoleNames.MainSuperAdmin,
+                RoleNames.MainAdmin,
+                RoleNames.MainDataEntry,
+                RoleNames.CompanySuperAdmin,
+                RoleNames.CompanyAdmin,
+                RoleNames.CompanyDataEntry,
+                RoleNames.CountrySuperAdmin,
+                RoleNames.CountryAdmin,
+                RoleNames.CountryDataEntry,
+                RoleNames.CountrySupervisor,
+                RoleNames.Guest
+            };
+        }
+        public static List<string> GetMainRoles()
+        {
+            return new List<string>
+            {
+                RoleNames.MainSuperAdmin,
+                RoleNames.MainAdmin,
+                RoleNames.MainDataEntry,
+            };
+        }
+        public static List<string> GetCompanyRoles()
+        {
+            return new List<string>
+            {
+                RoleNames.CompanySuperAdmin,
+                RoleNames.CompanyAdmin,
+                RoleNames.CompanyDataEntry,
+            };
+        }
+        public static List<string> GetCountryRoles()
+        {
+            return new List<string>
+            {
+                RoleNames.CountrySuperAdmin,
+                RoleNames.CountryAdmin,
+                RoleNames.CountryDataEntry,
+                RoleNames.CountrySupervisor,
+                RoleNames.Guest
+            };
+        }
     }
 }
