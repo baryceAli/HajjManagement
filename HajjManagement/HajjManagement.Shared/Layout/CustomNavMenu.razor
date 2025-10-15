@@ -139,6 +139,40 @@
                         </Authorized>
                     </AuthorizeView>
 
+
+                    <!-- Security Management -->
+                    <AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
+                        <Authorized>
+                            <div class="nav-item">
+                                <!-- Parent toggle -->
+                                <a class="nav-link d-flex align-items-center justify-content-between gap-2"
+                                   data-bs-toggle="collapse"
+                                   href="#securityMenu"
+                                   role="button"
+                                   aria-expanded="false"
+                                   aria-controls="securityMenu">
+                                    <i class="bi bi-shield-lock text-white"></i>
+                                    <span class="text-white">إدارة الأمان</span>
+                                    <i class="bi bi-caret-down-fill text-white ms-auto small"></i>
+                                </a>
+
+                                <!-- Collapsible submenu -->
+                                <div class="collapse ps-4" id="securityMenu" data-bs-parent="#sidebarMenu">
+                                    <NavLink class="nav-link text-white-50 small d-block py-1" href="Role/List">
+                                        <i class="bi bi-person-gear me-2"></i> الأدوار
+                                    </NavLink>
+                                    <NavLink class="nav-link text-white-50 small d-block py-1" href="User/List">
+                                        <i class="bi bi-people me-2"></i> المستخدمين
+                                    </NavLink>
+                                    <NavLink class="nav-link text-white-50 small d-block py-1" href="Permission/List">
+                                        <i class="bi bi-key me-2"></i> الصلاحيات
+                                    </NavLink>
+                                </div>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+
+
                     <!-- Change Password -->
                     <div class="nav-item mt-2 border-top pt-2">
                         <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="User/ChangePassword">

@@ -11,43 +11,66 @@ namespace WebAPI.Util
 {
     public class AuthService
     {
-        private readonly JwtSettings _jwtSettings;
         private readonly UserManager<User> userManager;
+        private readonly RoleManager<Role> roleManager;
+        private readonly JwtSettings jwtSettings;
 
-        public AuthService(IOptions<JwtSettings> jwtSettings, UserManager<User> userManager)
+        public AuthService(UserManager<User> userManager, RoleManager<Role> roleManager, IOptions<JwtSettings> jwtSettings)
         {
-            _jwtSettings = jwtSettings.Value;
             this.userManager = userManager;
+            this.roleManager = roleManager;
+            this.jwtSettings = jwtSettings.Value;
         }
 
         public async Task<string> GenerateJwtToken(User user)
         {
-            var userRoles = await userManager.GetRolesAsync(user);
+            var userClaims = await userManager.GetClaimsAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
+
+            var roleClaims = new List<Claim>();
+
+            foreach (var roleName in roles)
+            {
+                var role = await roleManager.FindByNameAsync(roleName);
+                if (role != null)
+                {
+                    var roleSpecificClaims = await roleManager.GetClaimsAsync(role);
+                    roleClaims.AddRange(roleSpecificClaims);
+                }
+            }
+
+            // Combine user and role claims (avoiding duplicates)
+            var allPermissions = userClaims
+                .Where(c => c.Type == "Permission")
+                .Select(c => c.Value)
+                .Concat(roleClaims.Where(c => c.Type == "Permission").Select(c => c.Value))
+                .Distinct()
+                .ToList();
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.FirstName + " " + user.LastName),
-                new Claim(ClaimTypes.Email, user.Email ?? "")
-                // You can add more claims like roles if needed
-                // Add roles as multiple claims
-
-                //claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? string.Empty),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+            // Add role names
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
+            // Add permissions as individual claims
+            claims.AddRange(allPermissions.Select(p => new Claim("Permission", p)));
+
+            // Combine all claims
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _jwtSettings.Issuer,
-                audience: _jwtSettings.Audience,
+                issuer: jwtSettings.Issuer,
+                audience: jwtSettings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
-                signingCredentials: creds);
+                expires: DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
+                signingCredentials: creds
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

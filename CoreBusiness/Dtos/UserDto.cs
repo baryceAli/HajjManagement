@@ -37,5 +37,47 @@ namespace CoreBusiness.Dtos
         [Range(1, int.MaxValue, ErrorMessage = "الرجاء ادخال الوحدة الإدارية")]
         public int AdministrativeDivisionId { get; set; }
         public bool isProfileCompleted { get; set; } = false;
+
+        public static User GetUser(UserDto userDto)
+        {
+            return new User
+            {
+                FirstName = userDto.FirstName,
+                LastName = userDto.LastName,
+                UserName = userDto.Email,
+                Email = userDto.Email,
+                PhoneNumber = userDto.PhoneNumber,
+                Passport = userDto.Passport,
+                IssuePlace = userDto.IssuePlace,
+                IssueDate = userDto.IssueDate,
+                ExpiryDate = userDto.ExpiryDate,
+                DateOfBirth = userDto.DateOfBirth,
+                Address = userDto.Address,
+                ProfilePictureUrl = userDto.ProfilePictureUrl,
+                isProfileCompleted = userDto.isProfileCompleted,
+                CountryId = userDto.CountryId,
+                AdministrativeDivisionId = userDto.AdministrativeDivisionId,
+
+            };
+        }
+        public static UserDto GetUserDto(User user)
+        {
+            return new UserDto { 
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Passport = user.Passport,
+                    IssuePlace = user.IssuePlace,
+                    IssueDate = user.IssueDate,
+                    ExpiryDate = user.ExpiryDate,
+                    DateOfBirth = user.DateOfBirth,
+                    Address = user.Address,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+                    CountryId = user.CountryId,
+                    AdministrativeDivisionId = user.AdministrativeDivisionId,
+                    isProfileCompleted = user.isProfileCompleted,
+            };
+    }
     }
 }

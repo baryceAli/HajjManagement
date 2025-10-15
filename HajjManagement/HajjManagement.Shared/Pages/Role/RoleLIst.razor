@@ -1,0 +1,104 @@
+﻿@page "/Role/List"
+@using CoreBusiness
+@using HajjManagement.Shared.Pages.Common
+@using HajjManagement.Shared.Services
+@inject IGenericAPIService<Role> RoleService
+@inject NavigationManager NavigationManager
+
+<div class="m-0 p-0" dir="rtl">
+    <div class="card shadow" dir="rtl">
+        <div class="card-header">
+            <h3 class="mb-4">الصلاحيات</h3>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> إضافة جديد</button>
+            @if (RoleList == null)
+            {
+                <p>جاري التحميل...</p>
+            }
+
+            else
+            {
+                <PagedTable TItem="Role"
+                            Items="RoleList"
+                            Language="@language"
+                            Columns="@RoleColumns"
+                            OnView="ViewRole"
+                            OnEdit="EditRole" />
+            }
+
+
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private List<Role> RoleList;
+    // private List<Country> countries;
+    
+    private string language = "Ar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        RoleList = (await RoleService.GetAllAsync()).ToList();
+
+        if (RoleList == null || !RoleList.Any())
+        {
+            // Logic to handle situation when no guests are available
+            // For example, set default values or notify the user
+        }
+        else
+        {
+            // Additional processing of guests can be added here
+        }
+    }
+
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/Role/Form");
+    }
+
+
+
+    /// <summary>
+    /// PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+    ///
+    bool IsArabic => language == "Ar";
+
+    private List<PagedTable<Role>.ColumnDefinition<Role>> RoleColumns => GetRoleColumns();
+    private List<PagedTable<Role>.ColumnDefinition<Role>> GetRoleColumns()
+    {
+        return new()
+        {
+            new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = r => r.Id},
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = r => r.Name },
+            new() { Title = IsArabic ? "الاسم" : "Name", Property = "URL_Role",
+                        GetValue = r =>new{Id=r.Id,Name= $"{r.Name}",URL="Role/Details"} },
+
+            new() { Title = IsArabic ? "الوصف" : "Description", Property = "Description", GetValue = h => h.Description },
+            // New column for Phone Number
+            // new() { Title = IsArabic ? "رقم الهاتف" : "Phone Number", Property = "PhoneNumber", GetValue = g => g.phone },
+        };
+    }
+    // These methods must exist to handle OnView and OnEdit events
+    private Task ViewRole(Role role)
+    {
+        NavigationManager.NavigateTo($"/Role/Details/{role.Id}");
+        return Task.CompletedTask;
+    }
+
+    private Task EditRole(Role role)
+    {
+        NavigationManager.NavigateTo($"/Role/Form/{role.Id}");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// End of PageTable Parameters for Guests
+    /// </summary>
+    /// <returns></returns>
+
+}

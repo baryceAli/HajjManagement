@@ -86,7 +86,7 @@
         {
             // GlobalData.User = user;
             GlobalData.Token = loginResponse.Token;
-            GlobalData.User = loginResponse.User;
+            GlobalData.User =UserDto.GetUser( loginResponse.User);
             GlobalData.CurrentCountryId = GlobalData.User.CountryId;
             ((CustomAuthStateProvider)AuthenticationStateProvider)
                 .NotifyUserAuthentication(loginResponse.Token);

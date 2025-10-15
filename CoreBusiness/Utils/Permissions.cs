@@ -21,8 +21,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "AdministrativeDivision.View";
-            public const string Edit = "AdministrativeDivision.Edit";
             public const string Add = "AdministrativeDivision.Add";
+            public const string Edit = "AdministrativeDivision.Edit";
             public const string Delete = "AdministrativeDivision.Delete";
         }
 
@@ -38,8 +38,8 @@ namespace CoreBusiness.Utils
             }
 
 
-            public const string View = "Bag.View";
             public const string Edit = "Bag.Edit";
+            public const string View = "Bag.View";
             public const string Add = "Bag.Add";
             public const string Delete = "Bag.Delete";
         }
@@ -57,8 +57,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "Company.View";
-            public const string Edit = "Company.Edit";
             public const string Add = "Company.Add";
+            public const string Edit = "Company.Edit";
             public const string Delete = "Company.Delete";
         }
 
@@ -76,8 +76,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "Contract.View";
-            public const string Edit = "Contract.Edit";
             public const string Add = "Contract.Add"; 
+            public const string Edit = "Contract.Edit";
             public const string Delete = "Contract.Delete";
         }
 
@@ -94,8 +94,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "Country.View";
-            public const string Edit = "Country.Edit";
             public const string Add = "Country.Add";
+            public const string Edit = "Country.Edit";
             public const string Delete = "Country.Delete";
         }
 
@@ -111,11 +111,10 @@ namespace CoreBusiness.Utils
             }
 
 
-            public const string PermissionNameAr = "مسمى الهيكل الإداري";
-            public const string PermissionNameEn = "Counntry Structure";
+            
             public const string View = "CounntryStructure.View";
-            public const string Edit = "CounntryStructure.Edit";
             public const string Add = "CounntryStructure.Add";
+            public const string Edit = "CounntryStructure.Edit";
             public const string Delete = "CounntryStructure.Delete";
         }
 
@@ -132,8 +131,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "Guest.View";
-            public const string Edit = "Guest.Edit";
             public const string Add = "Guest.Add"; 
+            public const string Edit = "Guest.Edit";
             public const string Delete = "Delete.Add";
         }
 
@@ -151,8 +150,8 @@ namespace CoreBusiness.Utils
 
             
             public const string View = "Hotel.View";
-            public const string Edit = "Hotel.Edit";
             public const string Add = "Hotel.Add";
+            public const string Edit = "Hotel.Edit";
             public const string Delete = "Hotel.Delete";
         }
 
@@ -170,8 +169,8 @@ namespace CoreBusiness.Utils
 
             
             public const string View = "Log.View";
-            public const string Edit = "Log.Edit";
             public const string Add = "Log.Add";
+            public const string Edit = "Log.Edit";
             public const string Delete = "Log.Delete";
         }
 
@@ -188,8 +187,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "Role.View";
-            public const string Edit = "Role.Edit";
             public const string Add = "Role.Add";
+            public const string Edit = "Role.Edit";
             public const string Delete = "Role.Delete";
         }
         public static class User
@@ -205,8 +204,8 @@ namespace CoreBusiness.Utils
 
 
             public const string View = "User.View";
-            public const string Edit = "User.Edit";
             public const string Add = "User.Add";
+            public const string Edit = "User.Edit";
             public const string Delete = "User.Delete";
         }
         public static class SecurityManagement
@@ -222,8 +221,8 @@ namespace CoreBusiness.Utils
 
             
             public const string View = "SecurityManagement.View";
-            public const string Edit = "SecurityManagement.Edit";
             public const string Add = "SecurityManagement.Add";
+            public const string Edit = "SecurityManagement.Edit";
             public const string Delete = "SecurityManagement.Delete";
         }
     }

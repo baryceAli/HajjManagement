@@ -1,0 +1,103 @@
+﻿@page "/Role/Form"
+@page "/Role/Form/{Id:int?}"
+
+@using CoreBusiness.Dtos
+@using CoreBusiness.Utils
+@using HajjManagement.Shared.Layout
+@inject IGenericAPIService<Role> RoleService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="role" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">الاسم</label>
+                <InputText id="Name" class="form-control" @bind-Value="role.Name" />
+            </div>
+
+            <div class="mb-3">
+                <label for="phone1" class="form-label">الوصف</label>
+                <InputTextArea id="phone1" class="form-control" @bind-Value="role.Description" />
+            </div>
+            
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>الصلاحية</th>
+                        <th>عرض</th>
+                        <th>إضافة</th>
+                        <th>تعديل</th>
+                        <th>حذف</th>
+                    </tr>
+                    
+                </thead>
+                <tbody>
+
+                    @foreach (var item in PermissionHelper.GetAllPermissionsDetailed())
+                    {    
+                        <tr>
+                            <td>@item.Ar</td>
+                            @foreach(var p in item.Permissions)
+                            {
+                                <td><InputCheckbox Value="true" ValueExpression="()=>true"></InputCheckbox></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(roleId > 0 ? "تعديل" : "حفظ")</button>
+            <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    private int roleId = 0;
+    private string title = "إضافة صلاحيات";
+    private RoleDto role = new(); // Corrected instantiation of Role
+     
+    protected override async Task OnInitializedAsync()
+    {
+         
+        // Initialize the Role object or perform any necessary setup
+        if (Id.HasValue && Id.Value>0)
+        {
+           var roleDb = await RoleService.GetByIdAsync((int)Id);
+            title = "تعديل بيانات الصلاحيات";
+        }
+    }
+
+
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        if (role!.Id== 0)
+        {
+            await RoleService.AddAsync(RoleDto.getRole(role));
+        }
+        else
+        {
+            await RoleService.UpdateAsync(RoleDto.getRole( role));
+        }
+
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+
+}
