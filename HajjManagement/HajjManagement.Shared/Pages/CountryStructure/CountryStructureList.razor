@@ -20,31 +20,45 @@
             {
                 <p>جاري التحميل...</p>
             }
+            else if(!countries.Any())
+            {
+                <p>لا توجد دول متاحة. يرجى إضافة دول أولاً.</p>
+            }
+            @* else if (!countryStructureList.Any())
+            {
+                <p>لا يوجد هيكل تنظيمي متاح.</p>
+            } *@
 
             else
             {
                 
-            <div class="mb-3">
-                <label for="CountryId" class="form-label">البلد</label>
-                @if (countries != null && countries.Any())
-                {
+                <div class="mb-3">
+                    <label for="CountryId" class="form-label">البلد</label>
+                    @if (countries != null && countries.Any())
+                    {
                     
-                    <select id="country-select" class="form-control" @onchange="onCountryChanged">
-                        <option value="">Select a country...</option>
-                        @foreach (var country in countries)
-                        {
-                            <option selected="@(country.CountryId==GlobalData.CurrentCountryId)" value="@country.CountryId">@country.Name</option>
-                        }
-                    </select>
+                        <select id="country-select" class="form-control" @onchange="onCountryChanged">
+                            <option value="">Select a country...</option>
+                            @foreach (var country in countries)
+                            {
+                                <option selected="@(country.CountryId==GlobalData.CurrentCountryId)" value="@country.CountryId">@country.Name</option>
+                            }
+                        </select>
+                    }
+                </div>
+                @if (countryStructureList == null)
+                {
+                    <p>Loading, please wait ...</p>
                 }
-            </div>
-            
-            <PagedTable TItem="CountryStructure"
+                else
+                {
+                    <PagedTable TItem="CountryStructure"
                             Items="countryStructureList"
                             Language="@language"
                             Columns="@GuestColumns"
                             OnView="ViewCountryStructure"
                             OnEdit="EditCountryStructure" />
+                }
             }
 
 
@@ -57,16 +71,28 @@
     private List<CountryStructure> countryStructureList;
     private List<CountryStructure> allCountryStructureList;
     private IEnumerable<Country> countries;
-    private Country? selectedCountry;
+    // private Country? selectedCountry;
     private string language = "Ar";
 
     protected override async Task OnInitializedAsync()
     {
-        countries = await CountryService.GetAllAsync(); 
-        allCountryStructureList= (await CountryStructureService.GetAllAsync()).ToList();
-        countryStructureList = new();// allCountryStructureList;
-        countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == GlobalData.CurrentCountryId).ToList();
-        selectedCountry = countries.First(c => c.CountryId == GlobalData.CurrentCountryId);
+        countries = await CountryService.GetAllAsync();
+        if (countries.Any())
+        {
+
+            allCountryStructureList = (await CountryStructureService.GetAllAsync()).ToList();
+            countryStructureList = new();// allCountryStructureList;
+            countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == GlobalData.CurrentCountryId).ToList();
+            
+            // selectedCountry = countries.First(c => c.CountryId == GlobalData.CurrentCountryId);
+
+            // Ensure selectedCountry is not null before proceeding
+            // if (selectedCountry != null)
+            // {
+            //     // Additional logic can be added here if needed
+
+            // }
+        }
     }
 
     private void CreateNew()
@@ -85,6 +111,7 @@
             else
             {
                 countryStructureList = allCountryStructureList.Where(cs => cs.CountryId == countryId).ToList();
+                GlobalData.CurrentCountryId = countryId;
             }
         }
         else

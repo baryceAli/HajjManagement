@@ -14,11 +14,23 @@
         </div>
         <div class="card-body">
             <button class="btn btn-primary mb-3" @onclick="CreateNew"><i class="bi bi-file-earmark-plus-fill"></i> تسجيل مستخدم جديد</button>
-            @if (userList == null)
+            @if (userList == null || countries==null || administrativeDivisionList==null)
             {
                 <p>جاري التحميل...</p>
             }
+            else if(!countries.Any())
+            {
+                <p>لا توجد دول متاحة. يرجى إضافة دول أولاً.</p> 
+            }
+            else if(!administrativeDivisionList.Any())
+            {
+                <p>لا توجد وحدات إدارية متاحة. يرجى إضافة وحدات إدارية أولاً.</p> 
+            }
+            else if (!userList.Any())
+            {
 
+                <p>لا يوجد مستخدمون متاحون.</p>
+            }
             else
             {
                 <PagedTable TItem="User"

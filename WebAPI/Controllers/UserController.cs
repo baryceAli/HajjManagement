@@ -622,4 +622,5 @@ namespace WebAPI.Controllers
 
     }
     public record PhoneOtpRequest(int UserId, string Otp);
+    //public record RegisterRequest(string Email, string Password, int CountryId, string PhoneNumber);
 }

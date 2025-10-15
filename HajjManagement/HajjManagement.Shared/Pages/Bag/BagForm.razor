@@ -207,11 +207,7 @@
 
         NavigationManager.NavigateTo("/Bag/List");
     }
-    private void onCancel()
-    {
-        NavigationManager.NavigateTo("/Bag/List");
-    }
-
+    
     private async Task OnCountryChange(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out var selectedCountryId))
@@ -223,5 +219,10 @@
                                           :new List<CountryStructure>();
         }
     }
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+
 
 }

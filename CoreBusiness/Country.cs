@@ -16,7 +16,9 @@ namespace CoreBusiness
         public string Capital { get; set; } // Capital city of the country
         public string Currency { get; set; } // Currency used in the country
         public string Language { get; set; } // Primary language spoken in the country
+        public bool IsRTL { get; set; }
         public string FlagUrl { get; set; } // URL to the country's flag image
+        public string CountryPhoneCode { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         

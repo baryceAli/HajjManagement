@@ -4,11 +4,12 @@
 @* <h3>AdministrativeDivisionForm</h3> *@
 @using CoreBusiness
 @using HajjManagement.Shared.Services
+@using HajjManagement.Shared.Services.Custom
 @using HajjManagement.Shared.Utilities
 @inject IGenericAPIService<CountryStructure> CountryStructureService
 @inject IGenericAPIService<Country> CountryService
 @inject NavigationManager NavigationManager
-
+@inject ICountryStructureCustomService CountryStructureCustomService
 <div class="card shadow" dir="rtl">
     <div class="card-header">
         <h3>@title</h3>
@@ -18,12 +19,6 @@
         <EditForm Model="countryStructure" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
-
-            <div class="mb-3">
-                <label for="NameAr" class="form-label">الاسم بالعربية</label>
-                <InputText id="NameAr" class="form-control" @bind-Value="countryStructure.Name" />
-            </div>
-
             <div class="mb-3">
                 <label for="CountryId" class="form-label">البلد</label>
                 @if (Id > 0)
@@ -61,6 +56,12 @@
                 }
             </div>
 
+            <div class="mb-3">
+                <label for="NameAr" class="form-label">الاسم</label>
+                <InputText id="NameAr" class="form-control" @bind-Value="countryStructure.Name" />
+            </div>
+
+
             <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
             <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
         </EditForm>
@@ -72,7 +73,7 @@
     public int? Id { get; set; }
     private string title = "إضافة مستوى تقسيم إداري";
     private CountryStructure? countryStructure = new(); // Field to hold the current AdministrativeDivisionType
-    private CountryStructure? parentCountryStructure = new();
+    // private CountryStructure? parentCountryStructure = new();
     private List<Country> countries = new();
     private List<CountryStructure> CountryStructureList = new();
     private List<CountryStructure> AllCountryStructureList = new();
@@ -83,15 +84,20 @@
     {
         countries = (await CountryService.GetAllAsync()).ToList();
 
-        var ss=GlobalData.CurrentCountryId;
+        countryStructure.CountryId = GlobalData.CurrentCountryId;
         AllCountryStructureList = (await CountryStructureService.GetAllAsync()).ToList(); // Fetching administrative divisions
         AllCountryStructureList.Insert(0, new CountryStructure { CountryStructureId = 0, Name = "لا يوجد" });
+        CountryStructureList = AllCountryStructureList.Where(cs => cs.CountryId == countryStructure.CountryId || cs.CountryStructureId==0).ToList();
         if (Id.HasValue && Id.Value > 0)
         {
             title = "تعديل مسميات هيكل الدولة";
             countryStructure = AllCountryStructureList.First(cs=>cs.CountryStructureId== Id);
-            CountryStructureList = AllCountryStructureList.Where(cs=>cs.CountryId==countryStructure.CountryId && cs.CountryStructureId!=Id).ToList();
-            parentCountryStructure = CountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == countryStructure.ParentCountryStructureId);
+            CountryStructureList = AllCountryStructureList.Where(cs=>cs.CountryId==countryStructure.CountryId && cs.CountryStructureId!=Id || cs.CountryStructureId==0).ToList();
+            // parentCountryStructure = CountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == countryStructure.ParentCountryStructureId);
+        }
+        else
+        {
+            // countryStructure.ParentCountryStructureId = CountryStructureList?.FirstOrDefault().CountryStructureId??null; // Add this line to handle the case where no country structures are found
         }
 
     }
@@ -143,14 +149,14 @@
             if(selectedParentId==0)
             {
                 countryStructure.ParentCountryStructureId = null;
-                countryStructure.CountryId = 0;
+                
             }
             else
             {
                 countryStructure.ParentCountryStructureId = selectedParentId;
                 var parentCs = CountryStructureList.First(cs => cs.CountryStructureId == selectedParentId);
-                // countryStructure.CountryId = parentCs.CountryId;
-                parentCountryStructure = CountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == selectedParentId);
+                countryStructure.CountryId = parentCs.CountryId;
+                // parentCountryStructure = CountryStructureList.FirstOrDefault(cs => cs.CountryStructureId == selectedParentId);
             }
             
             StateHasChanged();
@@ -168,6 +174,10 @@
                 countryStructure.ParentCountryStructureId = CountryStructureList.First().CountryStructureId;
                 GlobalData.CurrentCountryId = countryStructure?.CountryId ?? GlobalData.CurrentCountryId;
 
+            }
+            else
+            {
+                countryStructure.ParentCountryStructureId = null; // Add this line to handle the case where no country structures are found
             }
             StateHasChanged();
         }

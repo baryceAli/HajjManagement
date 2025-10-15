@@ -1,0 +1,68 @@
+﻿@page "/Role/Form"
+@page "/Role/Form/{Id?}"
+
+@inject IGenericAPIService<Role> RoleService
+@inject NavigationManager NavigationManager
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="role" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="Name" class="form-label">الاسم</label>
+                <InputText id="Name" class="form-control" @bind-Value="role.Name" />
+            </div>
+
+            <div class="mb-3">
+                <label for="phone1" class="form-label">الهاتف 1</label>
+                <InputNumber id="phone1" class="form-control" @bind-Value="role.Description" />
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+            <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    private string title = "إضافة بيانات الحقيبة";
+    private Role role = new(); // Corrected instantiation of Role
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize the Role object or perform any necessary setup
+        if (Id.HasValue && Id.Value>0)
+        {
+            role = await RoleService.GetByIdAsync(Id.Value);
+        }
+    }
+
+
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        if (role!.Id== 0)
+        {
+            await RoleService.AddAsync(role);
+        }
+        else
+        {
+            await RoleService.UpdateAsync(role);
+        }
+
+        NavigationManager.NavigateTo("/Bag/List");
+    }
+
+}

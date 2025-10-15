@@ -17,6 +17,7 @@ using System.Security.Claims;
 using System.Text;
 using WebAPI.HelperMethods;
 using WebAPI.Util;
+using Serilog;
 
 namespace WebAPI
 {
@@ -24,9 +25,21 @@ namespace WebAPI
     {
         public static async Task Main(string[] args)
         {
+            
+
             var builder = WebApplication.CreateBuilder(args);
 
+            Serilog.Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.MSSqlServer(
+                    connectionString: builder.Configuration.GetConnectionString("LogDbConnection"),// "Server =.;Database=LogsDB;Trusted_Connection=True;",
+                    sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions { TableName = "Logs" })
+                .CreateLogger();
+
+            builder.Host.UseSerilog();
             var section = builder.Configuration.GetSection("Smtp");
+            
+            
             GlobalData.EmailPassword = section["Password"];
 
 
