@@ -9,18 +9,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await UserService.GenericEndPointAsync<User>(null,
-                                                        version: "v1",
-                                                        controller: "User",
-                                                        endpoint: $"Email/{Email}",   // 👈 insert directly in path
-                                                        method: HttpMethod.Get
-                                                    );
+        // var user = await UserService.GenericEndPointAsync<User>(null,
+        //                                                 version: "v1",
+        //                                                 controller: "User",
+        //                                                 endpoint: $"Email/{Email}",   // 👈 insert directly in path
+        //                                                 method: HttpMethod.Get
+        //                                             );
 
-        if(user == null)
-        {
-            // SHOW Error msg
-            return;
-        }
+        // if(user == null)
+        // {
+        //     // SHOW Error msg
+        //     return;
+        // }
 
         //Get user's current roles
 
