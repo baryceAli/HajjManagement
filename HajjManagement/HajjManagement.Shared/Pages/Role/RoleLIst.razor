@@ -74,8 +74,7 @@
         return new()
         {
             new() { Title = IsArabic ? "#" : "#", Property = "Id", GetValue = r => r.Id},
-            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = r => r.Name },
-            new() { Title = IsArabic ? "الاسم" : "Name", Property = "URL_Role",
+            new() { Title = IsArabic ? "الصلاحية" : "Name", Property = "URL_Role",
                         GetValue = r =>new{Id=r.Id,Name= $"{r.Name}",URL="Role/Details"} },
 
             new() { Title = IsArabic ? "الوصف" : "Description", Property = "Description", GetValue = h => h.Description },

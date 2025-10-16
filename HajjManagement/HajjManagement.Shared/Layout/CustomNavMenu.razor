@@ -128,7 +128,7 @@
                     </div>
 
                     <!-- User Management -->
-                    <AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
+                    @* <AuthorizeView Roles="MainSuperAdmin,MainAdmin,CompanySuperAdmin,CompanyAdmin,SuperAdmin,Admin">
                         <Authorized>
                             <div class="nav-item">
                                 <NavLink class="nav-link d-flex align-items-center justify-content-between gap-2" href="User/List">
@@ -137,7 +137,7 @@
                                 </NavLink>
                             </div>
                         </Authorized>
-                    </AuthorizeView>
+                    </AuthorizeView> *@
 
 
                     <!-- Security Management -->
@@ -159,13 +159,10 @@
                                 <!-- Collapsible submenu -->
                                 <div class="collapse ps-4" id="securityMenu" data-bs-parent="#sidebarMenu">
                                     <NavLink class="nav-link text-white-50 small d-block py-1" href="Role/List">
-                                        <i class="bi bi-person-gear me-2"></i> الأدوار
+                                        <i class="bi bi-person-gear me-2"></i> الصلاحيات
                                     </NavLink>
                                     <NavLink class="nav-link text-white-50 small d-block py-1" href="User/List">
                                         <i class="bi bi-people me-2"></i> المستخدمين
-                                    </NavLink>
-                                    <NavLink class="nav-link text-white-50 small d-block py-1" href="Permission/List">
-                                        <i class="bi bi-key me-2"></i> الصلاحيات
                                     </NavLink>
                                 </div>
                             </div>

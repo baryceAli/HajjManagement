@@ -169,10 +169,10 @@
         {
             CountryStructureList = AllCountryStructureList.Where(cs => cs.CountryId == selectedCountryId && cs.CountryStructureId!=Id).ToList();
             countryStructure.CountryId = selectedCountryId;
+                GlobalData.CurrentCountryId = selectedCountryId;
             if (CountryStructureList != null && CountryStructureList.Any())
             {
                 countryStructure.ParentCountryStructureId = CountryStructureList.First().CountryStructureId;
-                GlobalData.CurrentCountryId = countryStructure?.CountryId ?? GlobalData.CurrentCountryId;
 
             }
             else
