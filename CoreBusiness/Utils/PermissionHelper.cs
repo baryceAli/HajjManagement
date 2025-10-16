@@ -7,9 +7,6 @@ namespace CoreBusiness.Utils
 {
     public static class PermissionHelper
     {
-        /// <summary>
-        /// Gets all defined permission strings like "User.View", "User.Add", etc.
-        /// </summary>
         public static List<string> GetAllPermissions()
         {
             var permissions = new List<string>();
@@ -32,44 +29,9 @@ namespace CoreBusiness.Utils
             return permissions;
         }
 
-        /// <summary>
-        /// Gets each permission group with its Arabic & English names.
-        /// Example: { Key = "AdministrativeDivision", Ar = "الهيكل الإداري", En = "Administrative Division" }
-        /// </summary>
-        public static List<(string Key, string Ar, string En)> GetPermissionGroups()
+        public static List<PermissionGroup> GetAllPermissionsDetailed()
         {
-            var result = new List<(string, string, string)>();
-
-            var nestedTypes = typeof(Permissions).GetNestedTypes(BindingFlags.Public | BindingFlags.Static);
-
-            foreach (var type in nestedTypes)
-            {
-                try
-                {
-                    var arMethod = type.GetMethod("Ar", BindingFlags.Public | BindingFlags.Static);
-                    var enMethod = type.GetMethod("En", BindingFlags.Public | BindingFlags.Static);
-
-                    var arName = arMethod?.Invoke(null, null)?.ToString() ?? type.Name;
-                    var enName = enMethod?.Invoke(null, null)?.ToString() ?? type.Name;
-
-                    result.Add((type.Name, arName, enName));
-                }
-                catch
-                {
-                    // Ignore any class missing Ar()/En()
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets all permissions grouped by page, including Arabic & English names.
-        /// </summary>
-        public static List<(string Key, string Ar, string En, List<string> Permissions)> GetAllPermissionsDetailed()
-        {
-            var result = new List<(string, string, string, List<string>)>();
-
+            var result = new List<PermissionGroup>();
             var nestedTypes = typeof(Permissions).GetNestedTypes(BindingFlags.Public | BindingFlags.Static);
 
             foreach (var type in nestedTypes)
@@ -80,13 +42,33 @@ namespace CoreBusiness.Utils
                 var arName = arMethod?.Invoke(null, null)?.ToString() ?? type.Name;
                 var enName = enMethod?.Invoke(null, null)?.ToString() ?? type.Name;
 
-                var permissions = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-                                      .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
-                                      .Select(f => f.GetRawConstantValue()?.ToString())
-                                      .Where(v => !string.IsNullOrEmpty(v))
-                                      .ToList()!;
+                var group = new PermissionGroup
+                {
+                    Key = type.Name,
+                    Ar = arName,
+                    En = enName,
+                };
 
-                result.Add((type.Name, arName, enName, permissions));
+                var permissionFields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                    .Where(f => f.FieldType == typeof(string) && f.IsLiteral && !f.IsInitOnly);
+
+                foreach (var field in permissionFields)
+                {
+                    string permissionName = field.GetRawConstantValue()?.ToString()!;
+                    string valueFieldName = field.Name + "Value";
+
+                    var valueField = type.GetField(valueFieldName, BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                    bool defaultValue = valueField != null ? (bool)valueField.GetRawConstantValue()! : false;
+
+                    group.Permissions.Add(new PermissionItem
+                    {
+                        Key = type.Name,
+                        Permission = permissionName,
+                        Value = defaultValue
+                    });
+                }
+
+                result.Add(group);
             }
 
             return result;

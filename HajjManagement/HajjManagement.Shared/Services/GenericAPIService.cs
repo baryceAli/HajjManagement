@@ -118,7 +118,7 @@ namespace HajjManagement.Shared.Services
                 if (string.IsNullOrWhiteSpace(endpoint))
                     throw new ArgumentException("Endpoint cannot be empty.", nameof(endpoint));
 
-                var url = $"api/{version}/{controller}/{endpoint}";
+                var url =(endpoint=="?" )? $"api/{version}/{controller}": $"api/{version}/{controller}/{endpoint}";
                 HttpResponseMessage response;
 
                 method ??= HttpMethod.Post; // default is POST

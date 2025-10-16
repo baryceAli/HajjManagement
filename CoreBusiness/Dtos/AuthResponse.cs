@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CoreBusiness.Dtos;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,11 @@ namespace CoreBusiness.Dtos
 {
     public class AuthResponse
     {
+        public bool success { get; set; }
         public string Message { get; set; }
         public string Token { get; set; }
         public DateTime ExpiresAt { get; set; }
-        public string UserId { get; set; }
-        public User User { get; set; }
-        public List<string>? Roles { get; set; }
+        public UserDto User { get; set; }
+
     }
 }

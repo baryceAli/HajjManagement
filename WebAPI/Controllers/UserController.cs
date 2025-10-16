@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 //using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,7 @@ namespace WebAPI.Controllers
         private readonly RoleManager<Role> roleManager;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration configuration;
+        private readonly ILogger<UserController> _logger;
         private readonly AuthService authService;
         private readonly JwtSettings jwtSettings;
 
@@ -47,6 +49,7 @@ namespace WebAPI.Controllers
                                 RoleManager<Role> RoleManager,
                                 IEmailSender emailSender,
                                 IConfiguration configuration,
+                                ILogger<UserController> logger,
                                 AuthService authService, IOptions<JwtSettings> jwtSettings)
         {
             this.service = service;
@@ -55,6 +58,7 @@ namespace WebAPI.Controllers
             roleManager = RoleManager;
             this._emailSender = emailSender;
             this.configuration = configuration;
+            this._logger = logger;
             this.authService = authService;
             this.jwtSettings = jwtSettings.Value;
             //this.userStore = userStore;
@@ -103,10 +107,10 @@ namespace WebAPI.Controllers
                 return BadRequest("User not found");
 
             //roleManager.GetClaimsAsync()
-           var claims= await userManager.GetClaimsAsync(user);
+            var claims = await userManager.GetClaimsAsync(user);
             return Ok(user);
         }
-        
+
         [HttpPost("register")]
         [MapToApiVersion("1.0")] // only available in v2
         public async Task<IActionResult> Register([FromBody] UserDto model)
@@ -141,7 +145,7 @@ namespace WebAPI.Controllers
                 var existingUser = await userManager.FindByEmailAsync(user.Email);
                 var role = await roleManager.FindByNameAsync(CoreBusiness.Utils.RoleNames.Guest);
 
-                if (existingUser != null && role!=null)
+                if (existingUser != null && role != null)
                 {
                     await userManager.AddToRoleAsync(existingUser, role.Name);
                 }
@@ -230,7 +234,7 @@ namespace WebAPI.Controllers
                 {
                     await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
 
                 }
@@ -258,71 +262,69 @@ namespace WebAPI.Controllers
 
 
 
-        [HttpPost]
-        [Route("login")]
+        [HttpPost("login")]
         [MapToApiVersion("1.0")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginDto model)
-        {
-            var user = await userManager.FindByNameAsync(model.LoginCode);
-            if (user == null)
-            {
-                return Unauthorized("Invalid login credentials.");
-            }
-            var passwordCheck = await userManager.CheckPasswordAsync(user, model.Password);
-            if (!passwordCheck)
-            {
-                return Unauthorized("Invalid login credentials.");
-            }
-            // Optionally, generate a JWT token or session here
-            string token = await authService.GenerateJwtToken(user); // Update to call GenerateJwtToken from authService
-
-            var roles = await userManager.GetRolesAsync(user);
-
-            return Ok(new AuthResponse
-            {
-                Message = "Login successful",
-                UserId = user.Id.ToString(),
-                User = user,
-                Token = token,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
-                Roles = roles.ToList()
-            });
-            //return Ok(new { Message = "Login successful", UserId = user.Id, Token = token });
-        }
-        [HttpPost]
-        [Route("login")]
-        [MapToApiVersion("2.0")]
         [AllowAnonymous]
         public async Task<IActionResult> Login2([FromBody] LoginDto model)
         {
-            var user = await userManager.FindByNameAsync(model.LoginCode);
-            if (user == null)
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid request data.");
+
+            try
             {
-                //user = await userManager.FindByEmailAsync(model.Email);
+                var user = await userManager.FindByNameAsync(model.LoginCode);
                 if (user == null)
+                {
+                    _logger.LogWarning("Login attempt failed: User not found. Username: {LoginCode}", model.LoginCode);
                     return Unauthorized("Invalid login credentials.");
-            }
-            var passwordCheck = await userManager.CheckPasswordAsync(user, model.Password);
-            if (!passwordCheck)
-            {
-                return Unauthorized("Invalid login credentials.");
-            }
-            // Optionally, generate a JWT token or session here
-            string token = await authService.GenerateJwtToken(user); // Update to call GenerateJwtToken from authService
+                }
 
-            var roles = await userManager.GetRolesAsync(user);
+                if (await userManager.IsLockedOutAsync(user))
+                {
+                    _logger.LogWarning("Login attempt failed: Account locked. Username: {LoginCode}", model.LoginCode);
+                    return Unauthorized("Account is locked.");
+                }
 
-            return Ok(new AuthResponse
+                if (!await userManager.IsEmailConfirmedAsync(user))
+                {
+                    _logger.LogWarning("Login attempt failed: Email not confirmed. Username: {LoginCode}", model.LoginCode);
+                    return Unauthorized("Email confirmation is required.");
+                }
+
+                var passwordCheck = await userManager.CheckPasswordAsync(user, model.Password);
+                if (!passwordCheck)
+                {
+                    await userManager.AccessFailedAsync(user); // increment access failure count
+                    _logger.LogWarning("Login attempt failed: Invalid password. Username: {LoginCode}", model.LoginCode);
+                    return Unauthorized("Invalid login credentials.");
+                }
+
+                // Reset access failed count
+                await userManager.ResetAccessFailedCountAsync(user);
+
+                // Generate JWT token
+                var token = await authService.GenerateJwtToken(user);
+                var roles = await userManager.GetRolesAsync(user);
+                var userDto = UserDto.GetUserDto(user);
+
+                _logger.LogInformation("User {LoginCode} logged in successfully.", model.LoginCode);
+
+                return Ok(new AuthResponse
+                {
+                    success = true,
+                    Message = "Login successful",
+                    Token = token,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
+                    User = userDto,
+                    //Roles = roles.ToList()
+                });
+            }
+            catch (Exception ex)
             {
-                Message = "Login successful",
-                UserId = user.Id.ToString(),
-                User = user,
-                Token = token,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
-                Roles = roles.ToList()
-            });
-            //return Ok(new { Message = "Login successful", UserId = user.Id, Token = token });
+                _logger.LogError(ex, "Unexpected error during login for user {LoginCode}", model.LoginCode);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "An error occurred while processing your request.");
+            }
         }
 
         [HttpPost]

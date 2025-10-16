@@ -1,0 +1,161 @@
+﻿@page "/Role/Form"
+@page "/Role/Form/{Id:int?}"
+
+@using CoreBusiness.Dtos
+@using CoreBusiness.Utils
+@using HajjManagement.Shared.Layout
+@using Microsoft.AspNetCore.Components.Authorization
+@using static CoreBusiness.Utils.PermissionHelper
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IGenericAPIService<Role> RoleService
+@inject NavigationManager NavigationManager
+
+<div class="card shadow" dir="rtl">
+    <div class="card-header">
+        <h3>@title</h3>
+    </div>
+    <div class="card-body">
+        <EditForm Model="rolePermissions" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            @if (AuthState.User.Claims.Any(c => c.Value == Permissions.SecurityManagement.View))
+            {
+                
+                <div class="mb-3">
+                    <label for="Name" class="form-label">الاسم</label>
+                    <InputText id="Name" class="form-control" @bind-Value="rolePermissions.Role.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone1" class="form-label">الوصف</label>
+                    <InputTextArea id="phone1" class="form-control" @bind-Value="rolePermissions.Role.Description" />
+                </div>
+
+                @if (rolePermissions != null && rolePermissions.Permissions.Any())
+                {
+
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>الصلاحية</th>
+                                <th>عرض</th>
+                                <th>إضافة</th>
+                                <th>تعديل</th>
+                                <th>حذف</th>
+                            </tr>
+
+                        </thead>
+                        <tbody>
+
+                            @foreach (var item in rolePermissions.Permissions)
+                            {
+                                <tr>
+                                    <td>@item.Ar</td>
+                                    @foreach (var p in item.Permissions)
+                                    {
+                                        <td>
+                                            <InputCheckbox @bind-Value="p.Value" />
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                }
+
+                <button type="submit" disabled="@(AuthState.User.Claims.Any(c=>c.Value==Permissions.SecurityManagement.Add || c.Value==Permissions.SecurityManagement.Edit)?false:true)" class="btn btn-primary"><i class="bi bi-floppy2-fill m-1"></i> @(Id.HasValue && Id.Value > 0 ? "تعديل" : "حفظ")</button>
+                <button type="button" class="btn btn-dark" @onclick="onCancel"><i class="bi bi-stop-circle-fill"></i> إلغاء</button>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    private RolePermissions rolePermissions = new RolePermissions();
+    // private int roleId = 0;
+    private string title = "إضافة صلاحيات";
+    // private Role role = new(); // Corrected instantiation of Role
+    private Role savedRole = new();
+    private List<PermissionGroup> allPermissions = new();
+    private List<string> userPermissions = [];
+    private bool showPermissions = true;
+    private AuthenticationState AuthState;
+    protected override async Task OnInitializedAsync()
+    {
+        showPermissions = true;
+        allPermissions = PermissionHelper.GetAllPermissionsDetailed();
+        rolePermissions.Permissions = allPermissions;
+        rolePermissions.Role = new Role();
+
+
+        AuthState = await ((CustomAuthStateProvider)AuthenticationStateProvider).GetAuthenticationStateAsync();
+        var claims = AuthState.User.Claims;
+        userPermissions = AuthState.User.Claims.Where(c => c.Type == "Permission").Select(c => c.Value).ToList();
+        var permissions = AuthState.User.Claims;
+
+        if (Id.HasValue && Id.Value >= 0)
+        {
+            // var roleDb = await RoleService.GetByIdAsync((int)Id);
+            rolePermissions = await RoleService.GenericEndPointAsync<RolePermissions>(
+                                                            requestData: null,
+                                                            version: "v1",
+                                                            controller: "Role",
+                                                            endpoint: $"{Id}", // No additional endpoint path
+                                                            method: HttpMethod.Get
+                                                        );
+            title = "تعديل بيانات الصلاحيات";
+
+
+
+            showPermissions = true;
+
+        }
+
+    }
+
+
+    private void onCancel()
+    {
+        NavigationManager.NavigateTo("/Role/List");
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        if (rolePermissions.Role!.Id == 0)
+        {
+
+            //Add Permissions
+            var createdRole = await RoleService.GenericEndPointAsync<RolePermissions>(
+                                                        requestData: rolePermissions,
+                                                        version: "v1",
+                                                        controller: "Role",
+                                                        endpoint: "?", // No additional endpoint path
+                                                        method: HttpMethod.Post
+                                                    );
+
+
+        }
+        else
+        {
+            // await RoleService.UpdateAsync(role);
+            var createdRole = await RoleService.GenericEndPointAsync<RolePermissions>(
+                                                        requestData: rolePermissions,
+                                                        version: "v1",
+                                                        controller: $"Role/{rolePermissions.Role.Id}",
+                                                        endpoint: "?", // No additional endpoint path
+                                                        method: HttpMethod.Put
+                                                    );
+
+        }
+
+        NavigationManager.NavigateTo("/Role/List");
+    }
+
+}
