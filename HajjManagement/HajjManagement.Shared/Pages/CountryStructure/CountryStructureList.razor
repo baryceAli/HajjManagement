@@ -135,8 +135,10 @@
         return new()
         {
             new() { Title = IsArabic ? "#" : "#", Property = "CountryStructureId", GetValue = cs => cs.CountryStructureId},
-            new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = cs => cs.Name },
-            new() { Title = IsArabic ? "الهيكل الاعلى" : "Higher Structure", Property = "ParentCountryStructureId", 
+            // new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = cs => cs.Name },
+            new() { Title = IsArabic ? "الصلاحية" : "Name", Property = "URL_CountryStructure",
+                                                                            GetValue = cs =>new{Id=cs.CountryStructureId,Name= $"{cs.Name}",URL="CountryStructure/Details"} },
+            new() { Title = IsArabic ? "الهيكل الاعلى" : "Higher Structure", Property = "ParentCountryStructureId",
                     GetValue = cs =>countryStructureList.FirstOrDefault(csl=>csl.CountryStructureId== cs.ParentCountryStructureId)==null?"لا يوجد":countryStructureList.First(csl=>csl.CountryStructureId== cs.ParentCountryStructureId).Name},
             new() { Title = IsArabic ? "الدولة" : "Country", Property = "CountryId", GetValue = cs =>countries.First(c=>c.CountryId== cs.CountryId).Name},
         };

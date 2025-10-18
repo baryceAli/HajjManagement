@@ -31,7 +31,7 @@ namespace HajjManagement
                 .AddJsonStream(stream!)
                 .Build();
 
-            var APIBaseUri = config.GetValue<string>("APIBaseUri") ?? "https://localhost:7154/";
+            var APIBaseUri = config.GetValue<string>("APIBaseUri") ?? "https://localhost:7154";
             builder.Services.AddHttpClient("GenericApiClient", client =>
             {
                 client.BaseAddress = new Uri(APIBaseUri);

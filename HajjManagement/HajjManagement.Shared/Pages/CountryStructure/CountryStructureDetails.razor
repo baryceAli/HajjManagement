@@ -93,7 +93,7 @@ else
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public int? Id { get; set; }
     private string language = "Ar";
     private AdministrativeDivision? division;
     private AdministrativeDivision? parentDivision;
@@ -103,8 +103,13 @@ else
     private List<Guest> guests = new();
     protected override async Task OnParametersSetAsync()
     {
+        return;
+        if(Id.HasValue && Id.Value > 0)
+        {
+            division = await DivisionService.GetByIdAsync((int)Id);
+            
+        }
         // Load main division
-        division = await DivisionService.GetByIdAsync(Id);
 
         // Load parent
         if (division.ParentId.HasValue && division.ParentId.Value > 0)
