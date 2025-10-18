@@ -26,10 +26,6 @@ namespace HajjManagement
 
             builder.Services.AddScoped(typeof(IGenericAPIService<>), typeof(GenericAPIService<>));
 
-
-            
-
-
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();

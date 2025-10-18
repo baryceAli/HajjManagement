@@ -136,10 +136,12 @@
             new() { Title = IsArabic ? "الاسم" : "Name", Property = "Name", GetValue = ad => ad.Name },
             new() { Title = IsArabic ? "اسم الهيكل الاداري" : "Country Structure Name", Property = "CountryStructureId", GetValue = ad => 
                                                                                        allCountryStructures.First(cs=>cs.CountryStructureId== ad.CountryStructureId).Name},
+            new() { Title = IsArabic ? "الصلاحية" : "Name", Property = "URL_AdministrativeDivision",
+                                                                            GetValue = ad =>new{Id=ad.AdministrativeDivisionId,Name= $"{ad.Name}",URL="AdministrativeDivision/Details"} },
             new() { Title = IsArabic ? "الهيكل الاداري الأعلى" : "Upper Structure", Property = "ParentId ", GetValue = ad =>
-                                                                        allAdministrativeDivision.FirstOrDefault(a=>a.AdministrativeDivisionId== ad.ParentId )==null?
-                                                                        "لا يوجد":
-                                                                        allAdministrativeDivision.First(a=>a.AdministrativeDivisionId== ad.ParentId ).Name},
+                                                                                        allAdministrativeDivision.FirstOrDefault(a=>a.AdministrativeDivisionId== ad.ParentId )==null?
+                                                                                        "لا يوجد":
+                                                                                        allAdministrativeDivision.First(a=>a.AdministrativeDivisionId== ad.ParentId ).Name},
             // new() { Title = IsArabic ? "الحقيبة" : "Bag", Property = "BagId", GetValue = g => g.BagId },
             // New column for Phone Number
             // new() { Title = IsArabic ? "رقم الهاتف" : "Phone Number", Property = "PhoneNumber", GetValue = g => g.phone },
